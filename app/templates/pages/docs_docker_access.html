@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Доступ к Docker - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header page-header--stacked">
+    <a class="back-link" href="/projects/">
+      <i data-lucide="arrow-left" aria-hidden="true"></i>
+      К проектам
+    </a>
+    <div>
+      <p class="eyebrow">Документация</p>
+      <h1>Доступ курьера к Docker</h1>
+    </div>
+  </header>
+
+  <section class="docs-grid">
+    <article class="panel docs-hero">
+      <div class="form-panel__icon">
+        <i data-lucide="square-terminal" aria-hidden="true"></i>
+      </div>
+      <div>
+        <h2>Почему контейнеры не отображаются</h2>
+        <p>
+          Airdock подключается к серверу по SSH под пользователем курьера и выполняет
+          <code>docker ps -a</code>. Если у этого пользователя нет доступа к Docker,
+          метрики сервера работают, но список контейнеров не приходит.
+        </p>
+      </div>
+    </article>
+
+    <article class="panel docs-card">
+      <div class="panel__header">
+        <h2>Вариант 1: добавить пользователя в группу docker</h2>
+      </div>
+      <ol class="docs-steps">
+        <li>
+          <span>Проверьте пользователя, который указан в курьере.</span>
+          <pre><code>whoami</code></pre>
+        </li>
+        <li>
+          <span>Добавьте его в группу Docker. Замените <code>develop</code> на нужного пользователя.</span>
+          <pre><code>sudo usermod -aG docker develop</code></pre>
+        </li>
+        <li>
+          <span>Перезайдите в SSH-сессию или перезапустите сервер, чтобы группа применилась.</span>
+          <pre><code>exit
+ssh develop@SERVER_IP</code></pre>
+        </li>
+        <li>
+          <span>Проверьте доступ без sudo.</span>
+          <pre><code>docker ps -a</code></pre>
+        </li>
+      </ol>
+    </article>
+
+    <article class="panel docs-card">
+      <div class="panel__header">
+        <h2>Вариант 2: разрешить sudo только для Docker</h2>
+      </div>
+      <ol class="docs-steps">
+        <li>
+          <span>Откройте sudoers через безопасный редактор.</span>
+          <pre><code>sudo visudo</code></pre>
+        </li>
+        <li>
+          <span>Добавьте строку. Путь к Docker можно проверить командой <code>which docker</code>.</span>
+          <pre><code>develop ALL=(root) NOPASSWD: /usr/bin/docker</code></pre>
+        </li>
+        <li>
+          <span>Проверьте, что команда работает без запроса пароля.</span>
+          <pre><code>sudo -n docker ps -a</code></pre>
+        </li>
+      </ol>
+    </article>
+
+    <article class="panel docs-card docs-card--wide">
+      <div class="panel__header">
+        <h2>Что должно получиться</h2>
+      </div>
+      <p class="muted">
+        После настройки Airdock начнет получать список контейнеров автоматически.
+        На странице проекта курьер будет светиться активным, а таблица контейнеров заполнится результатом <code>docker ps -a</code>.
+      </p>
+    </article>
+  </section>
+{% endblock %}

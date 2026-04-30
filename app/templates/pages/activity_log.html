@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Журнал срабатывания - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Административная часть</p>
+      <h1>Журнал срабатывания</h1>
+    </div>
+    <div class="live-pill">Событий: {{ events|length }}</div>
+  </header>
+
+  <section class="panel activity-log-panel">
+    <div class="panel__header">
+      <h2>Лента событий</h2>
+      <div class="legend">
+        <span><i class="dot dot--green"></i>info</span>
+        <span><i class="dot dot--orange"></i>warning</span>
+        <span><i class="dot dot--red"></i>error</span>
+      </div>
+    </div>
+
+    <div class="activity-log">
+      {% for event in events %}
+        <article class="activity-event activity-event--{{ event.level }}">
+          <div class="activity-event__icon">
+            {% if event.level == "error" %}
+              <i data-lucide="triangle-alert" aria-hidden="true"></i>
+            {% elif event.level == "warning" %}
+              <i data-lucide="badge-alert" aria-hidden="true"></i>
+            {% else %}
+              <i data-lucide="radar" aria-hidden="true"></i>
+            {% endif %}
+          </div>
+          <div class="activity-event__body">
+            <div class="activity-event__header">
+              <strong>{{ event.message }}</strong>
+              <span>{{ event.created_at.strftime("%d.%m.%Y %H:%M:%S") }}</span>
+            </div>
+            <div class="activity-event__meta">
+              <code>{{ event.event_type }}</code>
+              {% if event.project_id %}
+                <span>Проект #{{ event.project_id }}</span>
+              {% endif %}
+              {% if event.node_id %}
+                <span>Курьер #{{ event.node_id }}</span>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+      {% else %}
+        <section class="empty-panel">
+          Журнал пока пуст. Scheduler начнет добавлять события после первого опроса серверов.
+        </section>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

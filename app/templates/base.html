@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Airdock{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}?v=saas-20260430-17">
+    <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
+    <script defer src="{{ url_for('static', path='js/app.js') }}?v=saas-20260430-4"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="/projects/">
+          <span class="brand__mark">
+            <i data-lucide="rocket" aria-hidden="true"></i>
+          </span>
+          <span>
+            <strong>Airdock</strong>
+            <small>Админка Docker</small>
+          </span>
+        </a>
+
+        <nav class="nav" aria-label="Основная навигация">
+          <a class="nav__link {% if active_page == 'projects' %}nav__link--active{% endif %}" href="/projects/">
+            <span class="nav__icon"><i data-lucide="boxes" aria-hidden="true"></i></span>
+            Проекты
+          </a>
+          <a class="nav__link {% if active_page == 'tasks' %}nav__link--active{% endif %}" href="/tasks/">
+            <span class="nav__icon"><i data-lucide="list-checks" aria-hidden="true"></i></span>
+            Задачи
+          </a>
+          <a class="nav__link {% if active_page == 'pipelines' %}nav__link--active{% endif %}" href="/pipelines/">
+            <span class="nav__icon"><i data-lucide="workflow" aria-hidden="true"></i></span>
+            Пайплайны
+          </a>
+          <a class="nav__link {% if active_page == 'users' %}nav__link--active{% endif %}" href="/users/">
+            <span class="nav__icon"><i data-lucide="users-round" aria-hidden="true"></i></span>
+            Пользователи
+          </a>
+
+          {% if current_user and current_user.user_type.can_manage %}
+            <a class="nav__link {% if active_page == 'activity_log' %}nav__link--active{% endif %}" href="/admin/activity-log">
+              <span class="nav__icon"><i data-lucide="scroll-text" aria-hidden="true"></i></span>
+              Журнал срабатывания
+            </a>
+          {% endif %}
+        </nav>
+
+        {% if current_user and current_user.user_type.can_manage %}
+          <section class="admin-status" aria-label="Административная часть">
+            <div class="admin-status__title">
+              <span>Административная часть</span>
+              <i data-lucide="shield-check" aria-hidden="true"></i>
+            </div>
+            <div class="service-status" data-health-url="/health">
+              <span class="service-status__dot" aria-hidden="true"></span>
+              <span class="service-status__body">
+                <strong>Веб-служба Airdocker</strong>
+                <small data-health-text>Работает (HTTP: OK)</small>
+              </span>
+            </div>
+            <div class="service-status" data-scheduler-status>
+              <span class="service-status__dot" aria-hidden="true"></span>
+              <span class="service-status__body">
+                <strong>Scheduler</strong>
+                <small data-scheduler-text>Проверка статуса...</small>
+              </span>
+            </div>
+          </section>
+        {% endif %}
+
+        <div class="period-picker" aria-label="Управление сессией">
+          <span>{{ current_user.username if current_user else "Гость" }}</span>
+          <span class="period-picker__active">{{ current_user.user_type.label if current_user else "Закрыто" }}</span>
+          <form method="post" action="/auth/refresh">
+            <button type="submit">
+              <i data-lucide="refresh-cw" aria-hidden="true"></i>
+              Обновить
+            </button>
+          </form>
+          <form method="post" action="/logout">
+            <button type="submit">
+              <i data-lucide="log-out" aria-hidden="true"></i>
+              Выйти
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <main class="content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+    <div class="toast-viewport" data-toast-viewport aria-live="polite" aria-atomic="false"></div>
+  </body>
+</html>

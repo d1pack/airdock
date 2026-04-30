@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}{{ playbook.name }} - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header page-header--stacked">
+    <a class="back-link" href="/projects/{{ project.id }}">
+      <i data-lucide="arrow-left" aria-hidden="true"></i>
+      К проекту {{ project.name }}
+    </a>
+    <div>
+      <p class="eyebrow">Ansible playbook</p>
+      <h1>{{ playbook.name }}</h1>
+    </div>
+  </header>
+
+  {% if error == "forbidden" %}
+    <section class="alert">Недостаточно прав для изменения playbook.</section>
+  {% elif error == "missing" %}
+    <section class="alert">Playbook не найден.</section>
+  {% elif error == "duplicate_file" %}
+    <section class="alert">Файл с таким путём уже добавлен к playbook.</section>
+  {% endif %}
+
+  <section class="playbook-detail-layout">
+    <article class="panel form-panel playbook-editor-panel">
+      <div class="form-panel__header">
+        <div class="form-panel__icon">
+          <i data-lucide="file-pen-line" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h2>Данные playbook</h2>
+          <p>Изменения применятся к следующему запуску.</p>
+        </div>
+      </div>
+
+      <form class="form form--soft playbook-editor-form" method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/update">
+        <div class="playbook-editor-meta">
+          <label class="playbook-editor-meta__name">
+            Название
+            <input name="name" required value="{{ playbook.name }}" placeholder="deploy-nginx" {% if not can_edit_project %}readonly{% endif %}>
+          </label>
+          <label>
+            Проект
+            <select name="target_project_id" {% if not can_edit_project %}disabled{% endif %}>
+              {% for editable_project in editable_projects %}
+                <option value="{{ editable_project.id }}" {% if editable_project.id == project.id %}selected{% endif %}>
+                  {{ editable_project.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="playbook-editor-meta__description">
+            Описание
+            <input name="description" value="{{ playbook.description }}" placeholder="Обновление контейнеров и конфигов" {% if not can_edit_project %}readonly{% endif %}>
+          </label>
+        </div>
+        <label class="field-wide playbook-run-command-field">
+          Команда запуска
+          <input name="run_command" required value="{{ playbook.run_command or 'ansible-playbook -i {inventory} {playbook}' }}" placeholder="ansible-playbook -i {inventory} {playbook}" {% if not can_edit_project %}readonly{% endif %}>
+          <small>Доступные подстановки: <code>{inventory}</code>, <code>{playbook}</code>, <code>{playbook_file}</code>.</small>
+        </label>
+        <label class="field-wide">
+          YAML playbook
+          <textarea class="yaml-editor-source" name="content" rows="16" required data-yaml-editor {% if not can_edit_project %}readonly{% endif %}>{{ playbook.content }}</textarea>
+        </label>
+        {% if can_edit_project %}
+          <div class="playbook-editor-actions">
+            <button class="button button--primary" type="submit">
+              <i data-lucide="save" aria-hidden="true"></i>
+              Сохранить
+            </button>
+            <button class="button button--primary" type="submit" form="run-playbook-form">
+              <i data-lucide="play" aria-hidden="true"></i>
+              Запустить
+            </button>
+            <button class="button button--secondary" type="submit" form="clone-playbook-form">
+              <i data-lucide="copy-plus" aria-hidden="true"></i>
+              Клонировать
+            </button>
+          </div>
+        {% endif %}
+      </form>
+      {% if can_edit_project %}
+        <form id="run-playbook-form" method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/run">
+          <input type="hidden" name="next" value="playbook">
+        </form>
+        <form id="clone-playbook-form" method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/clone"></form>
+      {% endif %}
+    </article>
+
+    <article class="panel playbook-files-panel">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Рабочая директория playbook</p>
+          <h2>Дополнительные файлы</h2>
+        </div>
+        <span class="live-pill">{{ playbook.files|length }} файлов</span>
+      </div>
+
+      <div class="playbook-file-list">
+        {% for file in playbook.files %}
+          <article class="playbook-file-card" data-playbook-file-card>
+            <div class="playbook-file-card__header" data-playbook-file-toggle role="button" tabindex="0" aria-expanded="false">
+              <div class="playbook-file-card__title">
+                <span class="docker-container-card__icon">
+                  <i data-lucide="file-text" aria-hidden="true"></i>
+                </span>
+                <div>
+                  <span>Файл playbook</span>
+                  <code>{{ file.path }}</code>
+                </div>
+              </div>
+              <div class="playbook-file-card__tools">
+                <span class="playbook-file-card__chevron">
+                  <i data-lucide="chevron-down" aria-hidden="true"></i>
+                </span>
+                {% if can_edit_project %}
+                  <form method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/files/{{ file.id }}/delete" data-confirm="Удалить файл {{ file.path }}?">
+                    <button class="container-action container-action--delete" type="submit" title="Удалить файл">
+                      <i data-lucide="trash-2" aria-hidden="true"></i>
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+            <div class="playbook-file-card__menu">
+              <form class="form form--soft playbook-file-form" method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/files/{{ file.id }}/update">
+                <label>
+                  Путь файла
+                  <input name="path" required value="{{ file.path }}" placeholder="templates/app.env" {% if not can_edit_project %}readonly{% endif %}>
+                </label>
+                <label class="field-wide">
+                  Содержимое
+                  <textarea name="content" rows="8" {% if not can_edit_project %}readonly{% endif %}>{{ file.content }}</textarea>
+                </label>
+                {% if can_edit_project %}
+                  <div class="playbook-file-actions">
+                    <button class="button button--primary button--compact" type="submit">
+                      <i data-lucide="save" aria-hidden="true"></i>
+                      Сохранить файл
+                    </button>
+                  </div>
+                {% endif %}
+              </form>
+            </div>
+          </article>
+        {% else %}
+          <div class="docker-container-empty playbook-log-empty">
+            <i data-lucide="file-plus-2" aria-hidden="true"></i>
+            <span>Дополнительные файлы пока не добавлены.</span>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if can_edit_project %}
+        <form class="form form--soft playbook-file-create" method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/files">
+          <div class="playbook-file-create__header">
+            <div class="form-panel__icon">
+              <i data-lucide="file-plus-2" aria-hidden="true"></i>
+            </div>
+            <div>
+              <h3>Добавить файл</h3>
+              <p>Файл будет создан рядом с playbook перед запуском.</p>
+            </div>
+          </div>
+          <div class="playbook-file-form">
+            <label>
+              Путь файла
+              <input name="path" required placeholder="templates/app.env">
+            </label>
+            <label class="field-wide">
+              Содержимое
+              <textarea name="content" rows="8" placeholder="KEY=value"></textarea>
+            </label>
+            <div class="playbook-file-actions">
+              <button class="button button--primary" type="submit">
+                <i data-lucide="file-plus-2" aria-hidden="true"></i>
+                Добавить файл
+              </button>
+            </div>
+          </div>
+        </form>
+      {% endif %}
+    </article>
+
+    <article class="panel playbook-log-panel">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Последний запуск</p>
+          <h2>Вывод playbook</h2>
+        </div>
+        <span class="runner-status runner-status--{{ 'up' if playbook.last_status == 'success' else 'down' }}">
+          <i></i>{{ playbook.last_status or "Не запускался" }}
+        </span>
+      </div>
+      {% if playbook.last_run_at %}
+        <div class="runner-card__meta">
+          <span>{{ playbook.last_run_at.strftime("%d.%m.%Y %H:%M:%S") }}</span>
+        </div>
+      {% endif %}
+      {% if playbook.last_output %}
+        <pre class="playbook-log-output"><code>{{ playbook.last_output }}</code></pre>
+      {% else %}
+        <div class="docker-container-empty playbook-log-empty">
+          <i data-lucide="terminal" aria-hidden="true"></i>
+          <span>Вывода запусков пока нет.</span>
+        </div>
+      {% endif %}
+    </article>
+
+    <article class="panel playbook-history-panel">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Журнал</p>
+          <h2>Последние запуски</h2>
+        </div>
+        <span class="live-pill">{{ events|length }} событий</span>
+      </div>
+      <section class="activity-log">
+        {% for item in events %}
+          {% set event = item.event %}
+          {% set payload = item.payload %}
+          <article class="activity-event activity-event--{{ event.level }}">
+            <div class="activity-event__icon">
+              {% if event.level == "error" %}
+                <i data-lucide="triangle-alert" aria-hidden="true"></i>
+              {% elif event.level == "warning" %}
+                <i data-lucide="badge-alert" aria-hidden="true"></i>
+              {% else %}
+                <i data-lucide="radar" aria-hidden="true"></i>
+              {% endif %}
+            </div>
+            <div class="activity-event__body">
+              <div class="activity-event__header">
+                <strong>{{ event.message }}</strong>
+                <span>{{ event.created_at.strftime("%d.%m.%Y %H:%M:%S") }}</span>
+              </div>
+              <div class="activity-event__meta">
+                <code>{{ event.event_type }}</code>
+                {% if payload.status %}
+                  <span>{{ payload.status }}</span>
+                {% endif %}
+                {% if payload.return_code is defined and payload.return_code is not none %}
+                  <span>code {{ payload.return_code }}</span>
+                {% endif %}
+                {% if payload.node %}
+                  <span>{{ payload.node }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+        {% else %}
+          <div class="docker-container-empty playbook-log-empty">
+            <i data-lucide="history" aria-hidden="true"></i>
+            <span>Запусков в журнале пока нет.</span>
+          </div>
+        {% endfor %}
+      </section>
+    </article>
+  </section>
+{% endblock %}

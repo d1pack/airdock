@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }} - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header page-header--stacked">
+    <a class="back-link" href="/projects/">
+      <i data-lucide="arrow-left" aria-hidden="true"></i>
+      К проектам
+    </a>
+    <div>
+      <p class="eyebrow">Проект</p>
+      <h1>{{ project.name }}</h1>
+    </div>
+  </header>
+
+  {% if error == "forbidden" %}
+    <section class="alert">Недостаточно прав для изменения проекта.</section>
+  {% elif error == "duplicate_user" %}
+    <section class="alert">Пользователь уже допущен к проекту.</section>
+  {% elif error == "duplicate_node" %}
+    <section class="alert">Курьер с таким IP уже существует.</section>
+  {% elif error == "missing" %}
+    <section class="alert">Связанная сущность не найдена.</section>
+  {% endif %}
+
+  <section class="project-detail-grid">
+    <article class="panel project-hero project-hero--{{ project.status }}">
+      <div class="project-card__icon project-card__icon--large">{{ project.icon }}</div>
+      <div>
+        <div class="project-card__header">
+          <h2>{{ project.name }}</h2>
+          <span class="runner-status runner-status--{{ 'up' if project.status == 'active' else 'down' }}">
+            <i></i>{{ project.status_label }}
+          </span>
+        </div>
+        <p>{{ project.description or "Описание не указано." }}</p>
+        <div class="runner-card__meta">
+          <span>Создатель: {{ project.owner.username }}</span>
+          <span>{{ project.nodes|length }} курьеров</span>
+          <span data-container-count>контейнеры обновляются</span>
+        </div>
+        <div class="project-hero__runner-summary">
+          <div class="project-hero__runner-title">Курьеры проекта</div>
+          <div class="project-hero-runner-list">
+            {% for node in project.nodes %}
+              <div class="project-hero-runner project-hero-runner--{{ 'primary' if loop.first else 'secondary' }} project-hero-runner--{{ 'up' if node.status == 'up' else 'down' }}" data-project-node-id="{{ node.id }}">
+                <span class="project-hero-runner__icon">
+                  <i data-lucide="{{ 'star' if loop.first else 'route' }}" aria-hidden="true"></i>
+                </span>
+                <span class="project-hero-runner__body">
+                  <strong>{{ node.name }}</strong>
+                  <small>{{ node.server_ip }}</small>
+                </span>
+                <span class="project-hero-runner__role">{{ "Главный раннер" if loop.first else "Резервный" }}</span>
+                <span class="runner-status runner-status--{{ 'up' if node.status == 'up' else 'down' }}" data-node-status>
+                  <i></i>{{ "Активен" if node.status == "up" else "Не активен" }}
+                </span>
+              </div>
+            {% else %}
+              <div class="project-node-empty project-node-empty--inline">
+                <i data-lucide="route" aria-hidden="true"></i>
+                <span>Курьеры не назначены</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% if can_edit_project %}
+          <div class="panel-actions project-hero__actions">
+            <a class="button button--secondary button--compact" href="/projects/{{ project.id }}/settings">
+              <i data-lucide="settings-2" aria-hidden="true"></i>
+              Настройки
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </article>
+
+    <article class="panel monitoring-panel" data-project-metrics="/projects/{{ project.id }}/metrics">
+      <div class="panel__header monitoring-panel__header">
+        <div>
+          <p class="eyebrow">Мониторинг</p>
+          <h2>Нагрузка сервера</h2>
+        </div>
+        <span class="monitoring-panel__updated" data-metrics-updated>Обновление...</span>
+      </div>
+      <div class="monitoring-grid">
+        <section class="monitoring-card monitoring-card--cpu" data-metric-card="cpu">
+          <div class="monitoring-card__top">
+            <span>Нагрузка CPU</span>
+            <strong data-metric-value>--</strong>
+          </div>
+          <div class="monitoring-chart" data-metric-chart></div>
+          <div class="monitoring-card__bar" aria-hidden="true"><i data-metric-fill></i></div>
+          <div class="monitoring-card__details" data-metric-details></div>
+        </section>
+        <section class="monitoring-card monitoring-card--services" data-metric-card="services">
+          <div class="monitoring-card__top">
+            <span>Запущенные службы</span>
+            <strong data-metric-value>--</strong>
+          </div>
+          <div class="monitoring-chart" data-metric-chart></div>
+          <div class="monitoring-card__bar" aria-hidden="true"><i data-metric-fill></i></div>
+          <div class="monitoring-card__details" data-metric-details></div>
+        </section>
+        <section class="monitoring-card monitoring-card--ram" data-metric-card="ram">
+          <div class="monitoring-card__top">
+            <span>Потребление RAM</span>
+            <strong data-metric-value>--</strong>
+          </div>
+          <div class="monitoring-chart" data-metric-chart></div>
+          <div class="monitoring-card__bar" aria-hidden="true"><i data-metric-fill></i></div>
+          <div class="monitoring-card__details" data-metric-details></div>
+        </section>
+        <section class="monitoring-card monitoring-card--disk" data-metric-card="disk">
+          <div class="monitoring-card__top">
+            <span>Потребление диска</span>
+            <strong data-metric-value>--</strong>
+          </div>
+          <div class="monitoring-chart" data-metric-chart></div>
+          <div class="monitoring-card__bar" aria-hidden="true"><i data-metric-fill></i></div>
+          <div class="monitoring-card__details" data-metric-details></div>
+        </section>
+      </div>
+    </article>
+
+    <article class="panel docker-containers-panel">
+      <div class="panel__header docker-containers-panel__header">
+        <div>
+          <p class="eyebrow">Docker ps -a</p>
+          <h2>Контейнеры проекта</h2>
+        </div>
+        <span class="live-pill" data-container-count>Загрузка...</span>
+      </div>
+      <div class="docker-container-rail" data-project-containers>
+        <article class="docker-container-empty">
+          <i data-lucide="loader-circle" aria-hidden="true"></i>
+          <span>Загружаю контейнеры с курьеров...</span>
+        </article>
+      </div>
+    </article>
+
+    <article class="panel docker-containers-panel docker-images-panel">
+      <div class="panel__header docker-containers-panel__header">
+        <div>
+          <p class="eyebrow">Docker images</p>
+          <h2>Образы проекта</h2>
+        </div>
+        <span class="live-pill" data-image-count>Загрузка...</span>
+      </div>
+      <div class="docker-container-rail docker-image-rail" data-project-images>
+        <article class="docker-container-empty">
+          <i data-lucide="loader-circle" aria-hidden="true"></i>
+          <span>Загружаю образы с курьеров...</span>
+        </article>
+      </div>
+    </article>
+
+    <article class="panel ansible-panel">
+      <div class="panel__header docker-containers-panel__header">
+        <div>
+          <p class="eyebrow">Automation</p>
+          <h2>Ansible playbooks</h2>
+        </div>
+        <div class="panel-actions">
+          <span class="live-pill">{{ project.ansible_playbooks|length }} playbook</span>
+          {% if can_edit_project %}
+            <button class="button button--primary button--compact" type="button" data-open-dialog="add-playbook-dialog">
+              <i data-lucide="circle-plus" aria-hidden="true"></i>
+              Добавить playbook
+            </button>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="ansible-playbook-grid">
+        {% for playbook in project.ansible_playbooks %}
+          <article class="ansible-playbook-card ansible-playbook-card--{{ playbook.last_status or 'idle' }}">
+            <div class="ansible-playbook-card__top">
+              <span class="docker-container-card__icon">
+                <i data-lucide="workflow" aria-hidden="true"></i>
+              </span>
+              <div class="ansible-playbook-card__status">
+                <span class="runner-status runner-status--{{ 'up' if playbook.last_status == 'success' else 'down' }}">
+                  <i></i>{{ playbook.last_status or "Не запускался" }}
+                </span>
+                {% if can_edit_project %}
+                  <div class="ansible-playbook-card__actions">
+                    <a class="container-action container-action--edit" href="/projects/{{ project.id }}/playbooks/{{ playbook.id }}" title="Редактировать">
+                      <i data-lucide="pencil" aria-hidden="true"></i>
+                    </a>
+                    <form method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/clone">
+                      <button class="container-action container-action--clone" type="submit" title="Клонировать">
+                        <i data-lucide="copy-plus" aria-hidden="true"></i>
+                      </button>
+                    </form>
+                    <form method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/delete" data-confirm="Удалить playbook {{ playbook.name }}? Действие нельзя отменить.">
+                      <button class="container-action container-action--delete" type="submit" title="Удалить">
+                        <i data-lucide="trash-2" aria-hidden="true"></i>
+                      </button>
+                    </form>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+            <a class="ansible-playbook-card__link" href="/projects/{{ project.id }}/playbooks/{{ playbook.id }}">
+              <div class="docker-container-card__body">
+                <strong>{{ playbook.name }}</strong>
+                <span>{{ playbook.description or "Описание не указано" }}</span>
+              </div>
+              {% if playbook.last_run_at %}
+                <div class="runner-card__meta">
+                  <span>{{ playbook.last_run_at.strftime("%d.%m.%Y %H:%M:%S") }}</span>
+                </div>
+              {% endif %}
+            </a>
+            {% if playbook.last_output %}
+              <details class="ansible-output">
+                <summary>Вывод последнего запуска</summary>
+                <pre><code>{{ playbook.last_output }}</code></pre>
+              </details>
+            {% endif %}
+            {% if can_edit_project %}
+              <form class="ansible-playbook-card__run" method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/run">
+                <button class="button button--primary" type="submit">
+                  <i data-lucide="play" aria-hidden="true"></i>
+                  Запустить
+                </button>
+              </form>
+            {% endif %}
+          </article>
+        {% else %}
+          <article class="docker-container-empty">
+            <i data-lucide="workflow" aria-hidden="true"></i>
+            <span>Playbook-и пока не добавлены.</span>
+          </article>
+        {% endfor %}
+      </div>
+    </article>
+
+  </section>
+
+  {% if can_edit_project %}
+    <dialog class="modal" id="add-playbook-dialog">
+      <div class="modal__panel">
+        <div class="form-panel__header">
+          <div class="form-panel__icon">
+            <i data-lucide="file-plus-2" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h2>Добавить Ansible playbook</h2>
+            <p>Playbook будет запускаться по inventory из курьеров проекта.</p>
+          </div>
+          <button class="toast__close modal__close" type="button" data-close-dialog aria-label="Закрыть">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </div>
+        <form class="form form--soft" method="post" action="/projects/{{ project.id }}/playbooks">
+          <label>
+            Название
+            <input name="name" required placeholder="deploy-nginx">
+          </label>
+          <label>
+            Описание
+            <input name="description" placeholder="Обновление контейнеров и конфигов">
+          </label>
+          <label class="field-wide playbook-run-command-field">
+            Команда запуска
+            <input name="run_command" required value="ansible-playbook -i {inventory} {playbook}" placeholder="ansible-playbook -i {inventory} {playbook}">
+            <small>Доступные подстановки: <code>{inventory}</code>, <code>{playbook}</code>, <code>{playbook_file}</code>.</small>
+          </label>
+          <label class="field-wide">
+            YAML playbook
+            <textarea class="yaml-editor-source" name="content" rows="10" required data-yaml-editor placeholder="---
+- hosts: airdock
+  become: true
+  tasks:
+    - name: Проверить Docker
+      command: docker ps"></textarea>
+          </label>
+          <button class="button button--primary" type="submit">
+            <i data-lucide="circle-plus" aria-hidden="true"></i>
+            Добавить playbook
+          </button>
+        </form>
+      </div>
+    </dialog>
+  {% endif %}
+
+  <dialog class="modal container-logs-modal" id="container-logs-dialog">
+    <div class="modal__panel container-logs-modal__panel">
+      <div class="form-panel__header">
+        <div class="form-panel__icon">
+          <i data-lucide="square-terminal" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h2 data-container-logs-title>Логи контейнера</h2>
+          <p data-container-logs-meta>Выберите контейнер в списке проекта.</p>
+        </div>
+        <button class="toast__close modal__close" type="button" data-close-dialog aria-label="Закрыть">
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="cmd-log container-logs-view">
+        <div class="cmd-log__bar">
+          <span class="cmd-log__dots"><i></i><i></i><i></i></span>
+          <strong>docker logs --tail 300 --timestamps</strong>
+          <small data-container-logs-status>Ожидание</small>
+        </div>
+        <pre><code data-container-logs-output>Логи пока не загружены.</code></pre>
+      </div>
+    </div>
+  </dialog>
+{% endblock %}

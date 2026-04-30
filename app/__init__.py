@@ -1,0 +1,1 @@
+"""Airdock FastAPI application package."""

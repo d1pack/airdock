@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}{{ task.title }} - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header page-header--stacked">
+    <a class="back-link" href="/tasks/">
+      <i data-lucide="arrow-left" aria-hidden="true"></i>
+      К задачам
+    </a>
+    <div>
+      <p class="eyebrow">Задача #{{ task.id }}</p>
+      <h1>{{ task.title }}</h1>
+    </div>
+  </header>
+
+  <section class="task-detail-layout">
+    <article class="panel form-panel">
+      <div class="form-panel__header">
+        <div class="form-panel__icon">
+          <i data-lucide="list-checks" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h2>Параметры задачи</h2>
+          <p>Владелец: {{ task.owner_label }}. Тип: {{ task.task_type }}.</p>
+        </div>
+      </div>
+
+      <form class="form form--soft" method="post" action="/tasks/{{ task.id }}">
+        <label>
+          Название
+          <input name="title" required value="{{ task.title }}" {% if not can_edit_task %}readonly{% endif %}>
+        </label>
+        {% if task.task_type == "playbook" %}
+          <label>
+            Playbook для запуска
+            <select name="playbook_id" {% if not can_edit_task %}disabled{% endif %}>
+              {% for playbook in playbooks %}
+                <option value="{{ playbook.id }}" {% if task.playbook_id == playbook.id %}selected{% endif %}>{{ playbook.name }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        {% endif %}
+        <label>
+          Время запуска по МСК
+          <input type="datetime-local" name="scheduled_at_msk" value="{{ task.scheduled_at_msk_value }}" {% if not can_edit_task %}readonly{% endif %}>
+        </label>
+        {% if can_edit_task %}
+          <div class="task-create-actions">
+            <button class="button button--primary" type="submit" name="action" value="save">
+              <i data-lucide="save" aria-hidden="true"></i>
+              Сохранить
+            </button>
+            <button class="button button--secondary" type="submit" name="action" value="schedule">
+              <i data-lucide="clock" aria-hidden="true"></i>
+              Запланировать
+            </button>
+            {% if task.scheduled_at %}
+              <button class="button button--secondary" type="submit" name="action" value="clear_schedule">
+                <i data-lucide="x" aria-hidden="true"></i>
+                Снять таймер
+              </button>
+            {% endif %}
+          </div>
+        {% endif %}
+      </form>
+
+      {% if can_edit_task %}
+        <div class="task-detail-actions">
+          {% if task.status not in ["running", "queued", "cancel_requested"] %}
+            <form class="task-detail-run" method="post" action="/tasks/{{ task.id }}/enqueue">
+              <button class="button button--primary" type="submit">
+                <i data-lucide="play" aria-hidden="true"></i>
+                Поставить в очередь
+              </button>
+            </form>
+          {% endif %}
+          {% if task.status in ["queued", "running", "scheduled", "cancel_requested"] %}
+            <form class="task-detail-run" method="post" action="/tasks/{{ task.id }}/stop">
+              <button class="button button--secondary" type="submit">
+                <i data-lucide="square" aria-hidden="true"></i>
+                Остановить задачу
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      {% endif %}
+    </article>
+
+    <article class="panel">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Состояние</p>
+          <h2>{{ task.status_label }}</h2>
+        </div>
+        <span class="task-status task-status--{{ task.status_tone }}">
+          <i></i>{{ task.status_label }}
+        </span>
+      </div>
+      <div class="task-detail-meta">
+        <span>Создана: {{ task.created_at.strftime("%d.%m.%Y %H:%M:%S") }}</span>
+        {% if task.started_at %}<span>Старт: {{ task.started_at.strftime("%d.%m.%Y %H:%M:%S") }}</span>{% endif %}
+        {% if task.finished_at %}<span>Финиш: {{ task.finished_at.strftime("%d.%m.%Y %H:%M:%S") }}</span>{% endif %}
+        {% if task.scheduled_at %}
+          <span>Запуск МСК: {{ task.scheduled_at_msk.strftime("%d.%m.%Y %H:%M") }}</span>
+          <span class="task-countdown" data-task-countdown="{{ task.scheduled_at.isoformat() }}Z">Расчёт таймера...</span>
+        {% endif %}
+        {% if task.project %}<span>Проект: {{ task.project.name }}</span>{% endif %}
+        {% if task.pipeline %}<span>Пайплайн: <a href="/pipelines/{{ task.pipeline.id }}">{{ task.pipeline.name }}</a></span>{% endif %}
+      </div>
+      {% if task.error or task.result %}
+        <section class="cmd-log cmd-log--{{ task.status_tone }}">
+          <div class="cmd-log__bar">
+            <span class="cmd-log__dots"><i></i><i></i><i></i></span>
+            <strong>Airdock CMD</strong>
+            <small>{{ task.status_label }}</small>
+          </div>
+          <pre><code>{{ task.error if task.error else task.result }}</code></pre>
+        </section>
+      {% else %}
+        <div class="docker-container-empty playbook-log-empty">
+          <i data-lucide="loader-circle" aria-hidden="true"></i>
+          <span>Результата пока нет.</span>
+        </div>
+      {% endif %}
+    </article>
+  </section>
+{% endblock %}

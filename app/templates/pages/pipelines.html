@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Пайплайны - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">AUTOMATION FLOW</p>
+      <h1>Пайплайны</h1>
+      <p class="page-header__description">Управляйте автоматизированными сценариями деплоя и инфраструктуры</p>
+    </div>
+    <a class="button button--primary" href="/pipelines/new" aria-label="Создать новый пайплайн">
+      <i data-lucide="circle-plus" aria-hidden="true"></i>
+      Создать пайплайн
+    </a>
+  </header>
+
+  {% if error == "forbidden" %}
+    <section class="alert">Недостаточно прав для просмотра пайплайна.</section>
+  {% elif error == "missing" %}
+    <section class="alert">Пайплайн не найден.</section>
+  {% endif %}
+
+  <section class="pipeline-list">
+    {% for pipeline in pipelines %}
+      {% set latest_task = pipeline_tasks.get(pipeline.id) if pipeline_tasks is defined else None %}
+      <article class="pipeline-card">
+        <a class="pipeline-card__link" href="/pipelines/{{ pipeline.id }}">
+          <span class="pipeline-card__icon">
+            <i data-lucide="workflow" aria-hidden="true"></i>
+          </span>
+          <span class="pipeline-card__body">
+            <strong>{{ pipeline.name }}</strong>
+            <span class="pipeline-card__meta">
+              {% if pipeline.project_links %}
+                {% for link in pipeline.project_links %}{{ link.project.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+              {% else %}
+                {{ pipeline.project.name }}
+              {% endif %}
+              / {{ pipeline.steps|length }} шагов
+            </span>
+            <span class="pipeline-card__description">{{ pipeline.description or "Описание не указано." }}</span>
+          </span>
+        </a>
+
+        <div class="pipeline-card__steps">
+          {% for step in pipeline.steps[:5] %}
+            <span class="pipeline-step-tag">
+              <i data-lucide="play" aria-hidden="true"></i>
+              {{ step.playbook.name if step.playbook else "Playbook удален" }}
+            </span>
+          {% else %}
+            <span class="pipeline-card__flow-empty">Шаги еще не добавлены</span>
+          {% endfor %}
+          {% if pipeline.steps|length > 5 %}
+            <span class="pipeline-step-tag pipeline-step-tag--more">+{{ pipeline.steps|length - 5 }}</span>
+          {% endif %}
+        </div>
+
+        <div class="pipeline-card__actions">
+          <span class="task-status task-status--{{ latest_task.status_tone if latest_task else 'neutral' }}">
+            <i></i>{{ latest_task.status_label if latest_task else "Еще не запускался" }}
+          </span>
+          <form method="post" action="/pipelines/{{ pipeline.id }}/run">
+            <button class="button button--primary button--compact" type="submit" {% if not pipeline.steps %}disabled{% endif %} aria-label="Запустить пайплайн {{ pipeline.name }}">
+              <i data-lucide="play" aria-hidden="true"></i>
+              Запустить
+            </button>
+          </form>
+        </div>
+      </article>
+    {% else %}
+      <section class="panel empty-panel">Пайплайнов пока нет.</section>
+    {% endfor %}
+  </section>
+{% endblock %}

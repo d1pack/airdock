@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Контейнеры - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Инвентарь Docker</p>
+      <h1>Контейнеры</h1>
+    </div>
+    <div class="live-pill">Найдено: {{ containers|length }}</div>
+  </header>
+
+  {% if error %}
+    <section class="alert">
+      Docker недоступен: {{ error }}
+    </section>
+  {% endif %}
+
+  <section class="metric-grid metric-grid--compact">
+    <article class="metric-card metric-card--green">
+      <span>Всего</span>
+      <strong>{{ containers|length }}</strong>
+      <div class="sparkline sparkline--rise"></div>
+    </article>
+    <article class="metric-card metric-card--teal">
+      <span>Запущено</span>
+      <strong>{{ containers|selectattr("state", "equalto", "running")|list|length }}</strong>
+      <div class="bars-mini"><i></i><i></i><i></i><i></i><i></i></div>
+    </article>
+    <article class="metric-card metric-card--blue">
+      <span>Остановлено</span>
+      <strong>{{ containers|rejectattr("state", "equalto", "running")|list|length }}</strong>
+      <div class="wave-mini"></div>
+    </article>
+  </section>
+
+  <section class="panel panel--table">
+    <div class="panel__header">
+      <h2>Список контейнеров</h2>
+      <div class="legend">
+        <span><i class="dot dot--green"></i>запущены</span>
+        <span><i class="dot dot--orange"></i>остановлены</span>
+      </div>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Имя</th>
+          <th>Образ</th>
+          <th>Статус</th>
+          <th>ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for container in containers %}
+          <tr>
+            <td>{{ container.name }}</td>
+            <td>{{ container.image }}</td>
+            <td><span class="status">{{ container.state }}</span></td>
+            <td><code>{{ container.id }}</code></td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="4" class="empty">Контейнеры не найдены.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Проекты - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Рабочие пространства</p>
+      <h1>Проекты</h1>
+    </div>
+    <div class="live-pill">Всего: {{ projects|length }}</div>
+  </header>
+
+  {% if error == "forbidden" %}
+    <section class="alert">У вас нет доступа к этому проекту.</section>
+  {% elif error == "duplicate" %}
+    <section class="alert">Проект с таким именем уже существует.</section>
+  {% elif error == "missing" %}
+    <section class="alert">Проект не найден.</section>
+  {% endif %}
+
+  <section class="management-grid">
+    <div class="project-grid">
+      {% for project in projects %}
+        <a class="project-card project-card--{{ project.status }}" href="/projects/{{ project.id }}">
+          <div class="project-card__icon">{{ project.icon }}</div>
+          <div class="project-card__body">
+            <div class="project-card__header">
+              <h2>{{ project.name }}</h2>
+              <span class="runner-status runner-status--{{ 'up' if project.status == 'active' else 'down' }}">
+                <i></i>{{ project.status_label }}
+              </span>
+            </div>
+            <p>{{ project.description or "Описание не указано." }}</p>
+            <div class="runner-card__meta">
+              <span>{{ project.users|length }} пользователей</span>
+              <span>{{ project.nodes|length }} курьеров</span>
+            </div>
+          </div>
+        </a>
+      {% else %}
+        <article class="panel empty-panel">Проекты пока не созданы.</article>
+      {% endfor %}
+    </div>
+
+    <article class="panel form-panel">
+      <div class="form-panel__header">
+        <div class="form-panel__icon">
+          <i data-lucide="badge-plus" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h2>Создать проект</h2>
+          <p>После создания вы сможете вручную добавить пользователей, курьеров и контейнеры.</p>
+        </div>
+      </div>
+
+      <form class="form form--soft" method="post" action="/projects/">
+        <label>
+          Название проекта
+          <input name="name" required placeholder="Production API">
+        </label>
+        <label>
+          Описание
+          <textarea name="description" rows="4" placeholder="Кратко опишите назначение проекта"></textarea>
+        </label>
+        <button class="button button--primary" type="submit">
+          <i data-lucide="circle-plus" aria-hidden="true"></i>
+          Создать проект
+        </button>
+      </form>
+    </article>
+  </section>
+{% endblock %}

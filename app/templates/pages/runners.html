@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Курьеры - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Node-серверы</p>
+      <h1>Курьеры</h1>
+    </div>
+    <div class="live-pill">Подключено: {{ nodes|length }}</div>
+  </header>
+
+  {% if error == "forbidden" %}
+    <section class="alert">Недостаточно прав для управления курьерами.</section>
+  {% elif error == "duplicate" %}
+    <section class="alert">Node с таким server_ip уже существует.</section>
+  {% elif error == "missing" %}
+    <section class="alert">Курьер не найден.</section>
+  {% endif %}
+
+  <section class="management-grid">
+    <div class="runner-list">
+      {% for node in nodes %}
+        <article class="runner-card runner-card--{{ node.status }}">
+          <a class="runner-card__link" href="/runners/{{ node.id }}/settings" aria-label="Открыть настройки {{ node.name }}">
+            <div class="runner-card__icon">
+              <i data-lucide="route" aria-hidden="true"></i>
+            </div>
+            <div class="runner-card__body">
+              <div class="runner-card__header">
+                <h2>{{ node.name }}</h2>
+                <div class="runner-card__badges">
+                  <span class="runner-status runner-status--{{ node.status }}">
+                    <i></i>{{ "UP" if node.status == "up" else "DOWN" }}
+                  </span>
+                  <code>{{ node.server_ip }}</code>
+                </div>
+              </div>
+              <p>{{ node.description or "Описание не указано." }}</p>
+              <div class="runner-card__meta">
+                <span>{{ node.server_user }}</span>
+                <span>SSH-ключ зашифрован</span>
+                <span>Проектов: {{ node.project_links|length }}</span>
+              </div>
+            </div>
+          </a>
+          <div class="runner-card__actions" aria-label="Действия с курьером">
+            <a class="icon-button" href="/runners/{{ node.id }}/settings" title="Настроить" aria-label="Настроить {{ node.name }}">
+              <i data-lucide="settings-2" aria-hidden="true"></i>
+            </a>
+            {% if can_manage %}
+              <form method="post" action="/runners/{{ node.id }}/delete" data-confirm="Удалить курьера {{ node.name }}?">
+                <button class="icon-button icon-button--danger" type="submit" title="Удалить" aria-label="Удалить {{ node.name }}">
+                  <i data-lucide="trash-2" aria-hidden="true"></i>
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        </article>
+      {% else %}
+        <article class="panel empty-panel">Курьеры пока не добавлены.</article>
+      {% endfor %}
+    </div>
+
+    <article class="panel form-panel">
+      <div class="form-panel__header">
+        <div class="form-panel__icon">
+          <i data-lucide="route" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h2>Добавить курьера</h2>
+          <p>Подключите Node-сервер для управления Docker.</p>
+        </div>
+      </div>
+
+      {% if can_manage %}
+        <form class="form form--soft" method="post" action="/runners/">
+          <input type="hidden" name="icon" value="truck">
+          <label>
+            Имя курьера
+            <input name="name" required placeholder="prod-node-01">
+          </label>
+          <label>
+            Статус
+            <select name="status">
+              <option value="down">DOWN</option>
+              <option value="up">UP</option>
+            </select>
+          </label>
+          <label>
+            Описание
+            <textarea name="description" rows="3" placeholder="Production Docker node"></textarea>
+          </label>
+          <div class="form-grid">
+            <label>
+              IP сервера
+              <input name="server_ip" required placeholder="192.168.1.10">
+            </label>
+            <label>
+              Пользователь
+              <input name="server_user" required placeholder="root">
+            </label>
+          </div>
+          <label>
+            SSH-ключ
+            <textarea name="ssh_key" rows="5" required placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"></textarea>
+          </label>
+          <button class="button button--primary" type="submit">
+            <i data-lucide="circle-plus" aria-hidden="true"></i>
+            Добавить курьера
+          </button>
+        </form>
+      {% else %}
+        <p class="muted">Только Владелец и Администратор могут добавлять Node-серверы.</p>
+      {% endif %}
+    </article>
+  </section>
+{% endblock %}

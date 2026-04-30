@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Настройки {{ project.name }} - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header page-header--stacked">
+    <a class="back-link" href="/projects/{{ project.id }}">
+      <i data-lucide="arrow-left" aria-hidden="true"></i>
+      К проекту
+    </a>
+    <div>
+      <p class="eyebrow">Настройки проекта</p>
+      <h1>{{ project.name }}</h1>
+    </div>
+  </header>
+
+  {% if error == "forbidden" %}
+    <section class="alert">Недостаточно прав для изменения проекта.</section>
+  {% elif error == "duplicate" %}
+    <section class="alert">Проект с таким названием уже существует.</section>
+  {% elif error == "duplicate_user" %}
+    <section class="alert">Пользователь уже допущен к проекту.</section>
+  {% elif error == "duplicate_node" %}
+    <section class="alert">Курьер с таким IP уже существует.</section>
+  {% elif error == "missing" %}
+    <section class="alert">Связанная сущность не найдена.</section>
+  {% endif %}
+
+  <section class="project-settings-grid">
+    <article class="panel form-panel">
+      <div class="form-panel__header">
+        <div class="form-panel__icon">
+          <i data-lucide="settings-2" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h2>Основные данные</h2>
+          <p>Название и описание видны в списке проектов.</p>
+        </div>
+      </div>
+      <form class="form form--soft" method="post" action="/projects/{{ project.id }}/settings">
+        <label>
+          Название проекта
+          <input name="name" required value="{{ project.name }}">
+        </label>
+        <label>
+          Описание
+          <textarea name="description" rows="5">{{ project.description }}</textarea>
+        </label>
+        <button class="button button--primary" type="submit">
+          <i data-lucide="save" aria-hidden="true"></i>
+          Сохранить
+        </button>
+      </form>
+    </article>
+
+    <article class="panel">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Доступ</p>
+          <h2>Пользователи проекта</h2>
+        </div>
+        <span class="live-pill">{{ project.users|length }}</span>
+      </div>
+      <div class="chip-list">
+        {% for access in project.users %}
+          <span>{{ access.user.username }}</span>
+        {% else %}
+          <span>Нет пользователей</span>
+        {% endfor %}
+      </div>
+      <form class="inline-form" method="post" action="/projects/{{ project.id }}/users">
+        <input type="hidden" name="next" value="settings">
+        <select name="user_id" required>
+          {% for user in users %}
+            <option value="{{ user.id }}">{{ user.username }} / {{ user.user_type.label }}</option>
+          {% endfor %}
+        </select>
+        <button class="button button--primary" type="submit">
+          <i data-lucide="user-round-plus" aria-hidden="true"></i>
+          Допустить
+        </button>
+      </form>
+    </article>
+
+    <article class="panel project-nodes-panel project-settings-nodes">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Курьеры</p>
+          <h2>Раннеры проекта</h2>
+        </div>
+        <span class="live-pill">{{ project.nodes|length }}</span>
+      </div>
+      <div class="project-node-list">
+        {% for node in project.nodes %}
+          <div class="project-node-item project-node-item--{{ 'up' if node.status == 'up' else 'down' }}" data-project-node-id="{{ node.id }}">
+            <div class="project-node-item__icon">
+              <i data-lucide="route" aria-hidden="true"></i>
+            </div>
+            <div class="project-node-item__body">
+              <strong>{{ node.name }}</strong>
+              <span>{{ node.server_ip }}</span>
+            </div>
+            <span class="runner-status runner-status--{{ 'up' if node.status == 'up' else 'down' }}">
+              <i></i>{{ "Активен" if node.status == "up" else "Не активен" }}
+            </span>
+          </div>
+        {% else %}
+          <div class="project-node-empty">
+            <i data-lucide="route" aria-hidden="true"></i>
+            <span>Курьеры не назначены</span>
+          </div>
+        {% endfor %}
+      </div>
+      {% if nodes %}
+        <form class="inline-form" method="post" action="/projects/{{ project.id }}/nodes">
+          <input type="hidden" name="next" value="settings">
+          <select name="node_id" required>
+            {% for node in nodes %}
+              <option value="{{ node.id }}">{{ node.name }} / {{ node.server_ip }}</option>
+            {% endfor %}
+          </select>
+          <button class="button button--primary" type="submit">
+            <i data-lucide="plug-zap" aria-hidden="true"></i>
+            Привязать существующий
+          </button>
+        </form>
+      {% endif %}
+      <details class="project-node-create">
+        <summary>
+          <i data-lucide="circle-plus" aria-hidden="true"></i>
+          Добавить нового курьера
+        </summary>
+        <form class="form form--soft" method="post" action="/projects/{{ project.id }}/nodes/create">
+          <input type="hidden" name="next" value="settings">
+          <label>
+            Имя курьера
+            <input name="name" required placeholder="build-runner-01">
+          </label>
+          <label>
+            IP сервера
+            <input name="server_ip" required placeholder="192.168.1.20">
+          </label>
+          <label>
+            SSH пользователь
+            <input name="server_user" required placeholder="deploy">
+          </label>
+          <label class="field-wide">
+            Описание
+            <input name="description" placeholder="Общий раннер для проектов">
+          </label>
+          <label class="field-wide">
+            SSH private key
+            <textarea name="ssh_key" rows="5" required placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"></textarea>
+          </label>
+          <button class="button button--primary" type="submit">
+            <i data-lucide="route" aria-hidden="true"></i>
+            Создать и привязать
+          </button>
+        </form>
+      </details>
+    </article>
+  </section>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Обзор - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Панель управления Docker</p>
+      <h1>Обзор</h1>
+    </div>
+    <div class="live-pill">Состояние Docker daemon</div>
+  </header>
+
+  <section class="metric-grid">
+    <article class="metric-card metric-card--green">
+      <span>Запущено</span>
+      <strong>0</strong>
+      <div class="sparkline sparkline--rise"></div>
+    </article>
+    <article class="metric-card metric-card--teal">
+      <span>Образы</span>
+      <strong>0</strong>
+      <div class="funnel-mini">
+        <i></i><i></i><i></i><i></i>
+      </div>
+    </article>
+    <article class="metric-card metric-card--blue">
+      <span>Нагрузка CPU</span>
+      <strong>0%</strong>
+      <div class="wave-mini"></div>
+    </article>
+    <article class="metric-card metric-card--mint">
+      <span>Память</span>
+      <strong>0 MB</strong>
+      <div class="bars-mini">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+    </article>
+  </section>
+
+  <section class="dashboard-grid">
+    <article class="panel panel--wide">
+      <div class="panel__header">
+        <h2>Активность контейнеров</h2>
+        <div class="legend">
+          <span><i class="dot dot--orange"></i>Запуски</span>
+          <span><i class="dot dot--green"></i>Работают</span>
+          <span><i class="dot dot--blue"></i>Новые</span>
+        </div>
+      </div>
+      <div class="chart chart--activity" aria-hidden="true">
+        <span style="--h: 30%"></span>
+        <span style="--h: 38%"></span>
+        <span style="--h: 35%"></span>
+        <span style="--h: 52%"></span>
+        <span style="--h: 48%"></span>
+        <span style="--h: 66%"></span>
+        <span style="--h: 63%"></span>
+        <span style="--h: 72%"></span>
+        <span style="--h: 60%"></span>
+        <span style="--h: 80%"></span>
+        <span style="--h: 76%"></span>
+        <span style="--h: 88%"></span>
+      </div>
+    </article>
+
+    <article class="panel panel--centered">
+      <h2>Состояние daemon</h2>
+      <div class="donut" style="--value: 72">
+        <span>72%</span>
+        <small>готов</small>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel__header">
+        <h2>План работ</h2>
+        <strong>92%</strong>
+      </div>
+      <div class="roadmap-ring" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+    </article>
+
+    <article class="panel">
+      <h2>Воронка деплоя</h2>
+      <div class="funnel">
+        <i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <div class="split-stat">
+        <strong>13%</strong>
+        <span>ошибки</span>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel__header">
+        <h2>Использование томов</h2>
+        <strong>581.7G</strong>
+      </div>
+      <div class="chart chart--stacked" aria-hidden="true">
+        <span style="--h: 58%"></span>
+        <span style="--h: 50%"></span>
+        <span style="--h: 42%"></span>
+        <span style="--h: 38%"></span>
+        <span style="--h: 46%"></span>
+        <span style="--h: 62%"></span>
+        <span style="--h: 78%"></span>
+        <span style="--h: 88%"></span>
+        <span style="--h: 92%"></span>
+        <span style="--h: 86%"></span>
+        <span style="--h: 70%"></span>
+        <span style="--h: 58%"></span>
+      </div>
+    </article>
+  </section>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}{{ pipeline.name if pipeline else "Создать пайплайн" }} - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header page-header--stacked">
+    <a class="back-link" href="/pipelines/">
+      <i data-lucide="arrow-left" aria-hidden="true"></i>
+      К пайплайнам
+    </a>
+    <div>
+      <p class="eyebrow">Pipeline builder</p>
+      <h1>{{ pipeline.name if pipeline else "Создать пайплайн" }}</h1>
+    </div>
+  </header>
+
+  {% if error == "forbidden" %}
+    <section class="alert">Недостаточно прав для изменения пайплайна.</section>
+  {% elif error == "missing_project" %}
+    <section class="alert">Выберите от 1 до 5 доступных проектов для пайплайна.</section>
+  {% elif error == "empty_pipeline" %}
+    <section class="alert">Добавьте хотя бы один playbook перед запуском пайплайна.</section>
+  {% endif %}
+
+  {% if pipeline %}
+    {% set run_task = latest_task if latest_task is defined else None %}
+    <section class="panel pipeline-run-panel">
+      <div>
+        <p class="eyebrow">Исполнение</p>
+        <h2>Запуск пайплайна в очереди задач</h2>
+        <span class="task-status task-status--{{ run_task.status_tone if run_task else 'neutral' }}">
+          <i></i>{{ run_task.status_label if run_task else "Еще не запускался" }}
+        </span>
+      </div>
+      <div class="pipeline-run-panel__actions">
+        {% if run_task %}
+          <a class="button button--secondary button--compact" href="/tasks/{{ run_task.id }}">
+            <i data-lucide="terminal-square" aria-hidden="true"></i>
+            Открыть задачу
+          </a>
+        {% endif %}
+        <form method="post" action="/pipelines/{{ pipeline.id }}/run">
+          <button class="button button--primary button--compact" type="submit" {% if not pipeline.steps %}disabled{% endif %}>
+            <i data-lucide="play" aria-hidden="true"></i>
+            Запустить
+          </button>
+        </form>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if not projects %}
+    <section class="panel empty-panel">Нет проектов, где можно создавать пайплайны.</section>
+  {% elif not playbooks %}
+    <section class="panel empty-panel">В доступных проектах пока нет playbook-ов.</section>
+  {% else %}
+    <form class="pipeline-builder" method="post" action="{{ '/pipelines/' ~ pipeline.id if pipeline else '/pipelines/' }}" data-pipeline-builder>
+      <article class="panel form-panel pipeline-builder__settings">
+        <div class="form-panel__header">
+          <div class="form-panel__icon">
+            <i data-lucide="workflow" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h2>Основные данные</h2>
+            <p>Выберите проект, опишите пайплайн и принципы его работы.</p>
+          </div>
+        </div>
+        <div class="pipeline-settings-grid">
+          <label>
+            Название
+            <input name="name" required value="{{ pipeline.name if pipeline else '' }}" placeholder="Deploy production">
+          </label>
+          <div class="pipeline-project-picker field-wide">
+            <div>
+              <span>Проекты</span>
+              <small>Выберите от 1 до 5 проектов.</small>
+            </div>
+            <div class="pipeline-project-list" data-pipeline-project-list>
+              {% for project in projects %}
+                <label class="pipeline-project-option">
+                  <input type="checkbox" name="project_ids" value="{{ project.id }}" data-pipeline-project-checkbox {% if project.id in selected_project_ids %}checked{% endif %}>
+                  <span>{{ project.name }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+          <label>
+            Описание
+            <input name="description" value="{{ pipeline.description if pipeline else '' }}" placeholder="Что делает этот пайплайн">
+          </label>
+          <label class="field-wide">
+            Принципы работы
+            <textarea name="principles" rows="4" placeholder="Например: сначала подготовка окружения, затем деплой, затем проверка сервисов.">{{ pipeline.principles if pipeline else '' }}</textarea>
+          </label>
+        </div>
+      </article>
+
+      <article class="panel pipeline-builder__steps">
+        <div class="panel__header">
+          <div>
+            <p class="eyebrow">Очередность выполнения</p>
+            <h2>Шаги пайплайна</h2>
+          </div>
+          <button class="button button--secondary button--compact" type="button" data-pipeline-add-step>
+            <i data-lucide="plus" aria-hidden="true"></i>
+            Добавить шаг
+          </button>
+        </div>
+
+        <div class="pipeline-step-list" data-pipeline-step-list>
+          {% if pipeline and pipeline.steps %}
+            {% for step in pipeline.steps %}
+              <article class="pipeline-step-card" draggable="true" data-pipeline-step data-step-project-id="{{ step.playbook.project_id }}">
+                <button class="pipeline-step-card__drag" type="button" title="Перетащить">
+                  <i data-lucide="grip-vertical" aria-hidden="true"></i>
+                </button>
+                <div class="pipeline-step-card__index">{{ loop.index }}</div>
+                <label>
+                  Playbook
+                  <select name="playbook_ids" required data-pipeline-playbook-select>
+                    {% for playbook in playbooks %}
+                      <option value="{{ playbook.id }}" data-project-id="{{ playbook.project_id }}" {% if playbook.id == step.playbook_id %}selected{% endif %}>
+                        {{ playbook.project.name }} / {{ playbook.name }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <button class="container-action container-action--delete" type="button" data-pipeline-remove-step title="Удалить шаг">
+                  <i data-lucide="trash-2" aria-hidden="true"></i>
+                </button>
+              </article>
+            {% endfor %}
+          {% else %}
+            <article class="pipeline-step-card" draggable="true" data-pipeline-step>
+              <button class="pipeline-step-card__drag" type="button" title="Перетащить">
+                <i data-lucide="grip-vertical" aria-hidden="true"></i>
+              </button>
+              <div class="pipeline-step-card__index">1</div>
+              <label>
+                Playbook
+                <select name="playbook_ids" required data-pipeline-playbook-select>
+                  {% for playbook in playbooks %}
+                    <option value="{{ playbook.id }}" data-project-id="{{ playbook.project_id }}">
+                      {{ playbook.project.name }} / {{ playbook.name }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </label>
+              <button class="container-action container-action--delete" type="button" data-pipeline-remove-step title="Удалить шаг">
+                <i data-lucide="trash-2" aria-hidden="true"></i>
+              </button>
+            </article>
+          {% endif %}
+          <button class="pipeline-step-card pipeline-step-card--ghost" type="button" data-pipeline-add-step>
+            <span><i data-lucide="plus" aria-hidden="true"></i></span>
+            <strong>Добавить следующий шаг</strong>
+          </button>
+        </div>
+      </article>
+
+      <div class="pipeline-builder__actions">
+        <button class="button button--primary" type="submit">
+          <i data-lucide="save" aria-hidden="true"></i>
+          Сохранить пайплайн
+        </button>
+      </div>
+    </form>
+  {% endif %}
+{% endblock %}

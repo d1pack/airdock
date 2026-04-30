@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Настройка курьера - Airdock{% endblock %}
+
+{% block content %}
+  <header class="page-header page-header--stacked">
+    <a class="back-link" href="/runners/">
+      <i data-lucide="arrow-left" aria-hidden="true"></i>
+      К списку
+    </a>
+    <div>
+      <p class="eyebrow">Настройка курьера</p>
+      <h1>{{ node.name }}</h1>
+    </div>
+  </header>
+
+  {% if not can_manage %}
+    <section class="alert">Недостаточно прав для изменения курьера.</section>
+  {% endif %}
+
+  <section class="settings-layout">
+    <article class="panel form-panel settings-panel">
+      <div class="form-panel__header">
+        <div class="form-panel__icon">
+          <i data-lucide="route" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h2>Параметры подключения</h2>
+          <p>{{ node.server_ip }} / {{ node.server_user }}</p>
+        </div>
+      </div>
+
+      <form class="form form--soft" method="post" action="/runners/{{ node.id }}/settings">
+        <input type="hidden" name="icon" value="truck">
+        <div class="form-grid form-grid--settings">
+          <label>
+            Имя курьера
+            <input name="name" required value="{{ node.name }}" {% if not can_manage %}disabled{% endif %}>
+          </label>
+          <label>
+            Статус
+            <select name="status" {% if not can_manage %}disabled{% endif %}>
+              <option value="down" {% if node.status == "down" %}selected{% endif %}>DOWN</option>
+              <option value="up" {% if node.status == "up" %}selected{% endif %}>UP</option>
+            </select>
+          </label>
+          <label>
+            IP сервера
+            <input name="server_ip" required value="{{ node.server_ip }}" {% if not can_manage %}disabled{% endif %}>
+          </label>
+          <label>
+            Пользователь
+            <input name="server_user" required value="{{ node.server_user }}" {% if not can_manage %}disabled{% endif %}>
+          </label>
+          <label class="field-wide">
+            Описание
+            <textarea name="description" rows="4" {% if not can_manage %}disabled{% endif %}>{{ node.description }}</textarea>
+          </label>
+        </div>
+        <label class="field-wide">
+          Новый SSH-ключ
+          <textarea name="ssh_key" rows="5" placeholder="Оставьте пустым, чтобы не менять ключ" {% if not can_manage %}disabled{% endif %}></textarea>
+        </label>
+        <button class="button button--primary" type="submit" {% if not can_manage %}disabled{% endif %}>
+          <i data-lucide="sparkles" aria-hidden="true"></i>
+          Сохранить изменения
+        </button>
+      </form>
+    </article>
+  </section>
+{% endblock %}
