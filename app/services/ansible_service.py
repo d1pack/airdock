@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from io import StringIO
 from typing import Callable
 
+from app.core.config import settings
 from app.core.security import decrypt_secret
 from app.db.models import AnsiblePlaybook, Node, Project
 
@@ -89,7 +90,13 @@ def _run_playbook_on_node(playbook: AnsiblePlaybook, project: Project, node: Nod
             sftp.close()
 
         command = f"cd {shlex.quote(remote_dir)} && {_render_run_command(playbook, remote_playbook_path, remote_inventory_path)}"
-        output, return_code = _exec(client, command, timeout=900, allow_failed=True, should_stop=should_stop)
+        output, return_code = _exec(
+            client,
+            command,
+            timeout=settings.playbook_timeout_seconds,
+            allow_failed=True,
+            should_stop=should_stop,
+        )
         return AnsibleRunResult(
             status="success" if return_code == 0 else "failed",
             output=output.strip()[-20000:],
@@ -106,17 +113,18 @@ def _run_playbook_on_node(playbook: AnsiblePlaybook, project: Project, node: Nod
         client.close()
 
 
-def _exec(client, command: str, timeout: int, allow_failed: bool = False, should_stop: Callable[[], bool] | None = None) -> tuple[str, int]:
-    _, stdout, stderr = client.exec_command(command, timeout=timeout)
+def _exec(client, command: str, timeout: int | None, allow_failed: bool = False, should_stop: Callable[[], bool] | None = None) -> tuple[str, int]:
+    timeout_limit = timeout if timeout and timeout > 0 else None
+    _, stdout, stderr = client.exec_command(command, timeout=timeout_limit)
     channel = stdout.channel
     started_at = time.monotonic()
     while not channel.exit_status_ready():
         if should_stop and should_stop():
             channel.close()
             raise AnsibleRunCancelled("Запуск playbook остановлен пользователем.")
-        if time.monotonic() - started_at > timeout:
+        if timeout_limit is not None and time.monotonic() - started_at > timeout_limit:
             channel.close()
-            raise AnsibleRunError(f"Remote command timed out after {timeout} seconds.")
+            raise AnsibleRunError(f"Remote command timed out after {timeout_limit} seconds.")
         time.sleep(0.25)
     return_code = channel.recv_exit_status()
     output = stdout.read().decode("utf-8", errors="replace")

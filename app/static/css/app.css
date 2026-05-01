@@ -8242,3 +8242,48 @@ textarea,
     0 24px 70px rgba(0, 0, 0, 0.34),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
+
+/* Pipeline list status badge: show full text instead of clipping */
+.pipeline-list .pipeline-card__actions {
+  min-width: 0 !important;
+  max-width: 100%;
+}
+
+.pipeline-list .pipeline-card__actions .task-status {
+  width: auto !important;
+  max-width: min(360px, 100%) !important;
+  min-height: 48px;
+  height: auto !important;
+  flex: 1 1 240px !important;
+  justify-content: flex-start;
+  align-items: center;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.25;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.pipeline-list .pipeline-card__actions .task-status i {
+  flex: 0 0 auto;
+}
+
+.pipeline-list .pipeline-card__actions form {
+  flex: 0 0 auto !important;
+}
+
+@media (min-width: 1321px) {
+  .pipeline-list .pipeline-card__actions {
+    display: grid !important;
+    grid-template-columns: minmax(240px, 360px) auto;
+    align-items: center;
+  }
+}
+
+@media (max-width: 1320px) {
+  .pipeline-list .pipeline-card__actions .task-status {
+    flex: 0 1 auto !important;
+    max-width: none !important;
+  }
+}

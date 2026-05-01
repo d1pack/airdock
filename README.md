@@ -81,6 +81,7 @@ AIRDOCK_DATABASE_URL=sqlite:///./airdock.db
 AIRDOCK_ACCESS_TOKEN_MINUTES=43200
 AIRDOCK_REFRESH_TOKEN_DAYS=90
 AIRDOCK_TASK_WORKERS=4
+AIRDOCK_PLAYBOOK_TIMEOUT_SECONDS=7200
 AIRDOCK_DOCKER_BASE_URL=
 ```
 
@@ -95,6 +96,7 @@ AIRDOCK_DOCKER_BASE_URL=
 | `AIRDOCK_ACCESS_TOKEN_MINUTES` | Время жизни access cookie. По умолчанию 30 дней. |
 | `AIRDOCK_REFRESH_TOKEN_DAYS` | Время жизни refresh-сессии. По умолчанию 90 дней. |
 | `AIRDOCK_TASK_WORKERS` | Количество параллельных воркеров задач, от 2 до 8. |
+| `AIRDOCK_PLAYBOOK_TIMEOUT_SECONDS` | Лимит выполнения одной remote-команды playbook. По умолчанию 7200 секунд. Значение `0` отключает лимит. |
 | `AIRDOCK_DOCKER_BASE_URL` | Опциональный Docker API endpoint для локального Docker SDK. |
 
 ## Подготовка сервера к деплою
@@ -157,6 +159,7 @@ Environment="AIRDOCK_DATABASE_URL=sqlite:////opt/airdock/airdock.db"
 Environment="AIRDOCK_ACCESS_TOKEN_MINUTES=43200"
 Environment="AIRDOCK_REFRESH_TOKEN_DAYS=90"
 Environment="AIRDOCK_TASK_WORKERS=4"
+Environment="AIRDOCK_PLAYBOOK_TIMEOUT_SECONDS=7200"
 ExecStart=/opt/airdock/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 Restart=always
 RestartSec=5

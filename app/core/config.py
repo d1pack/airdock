@@ -18,6 +18,7 @@ class Settings:
     secret_key: str = getenv("AIRDOCK_SECRET_KEY", "change-this-local-dev-secret")
     access_token_minutes: int = int(getenv("AIRDOCK_ACCESS_TOKEN_MINUTES", str(60 * 24 * 30)))
     refresh_token_days: int = int(getenv("AIRDOCK_REFRESH_TOKEN_DAYS", "90"))
+    playbook_timeout_seconds: int = int(getenv("AIRDOCK_PLAYBOOK_TIMEOUT_SECONDS", "7200"))
 
 
 settings = Settings()
