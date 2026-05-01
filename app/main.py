@@ -2,6 +2,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
 from app.db.init_db import init_db
@@ -13,11 +14,30 @@ from app.web.router import router as web_router
 BASE_DIR = Path(__file__).resolve().parent
 
 
+class ProxyHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        # Handle X-Forwarded-Proto for scheme
+        forwarded_proto = request.headers.get('x-forwarded-proto')
+        if forwarded_proto:
+            request.scope['scheme'] = forwarded_proto
+
+        # Handle X-Forwarded-Host for host
+        forwarded_host = request.headers.get('x-forwarded-host')
+        if forwarded_host:
+            request.scope['server'] = (forwarded_host, request.scope['server'][1])
+
+        response = await call_next(request)
+        return response
+
+
 def create_app() -> FastAPI:
     application = FastAPI(
         title=settings.app_name,
         debug=settings.debug,
     )
+
+    # Add middleware to handle proxy headers (for GitHub Codespaces)
+    application.add_middleware(ProxyHeadersMiddleware)
 
     application.mount(
         "/static",
