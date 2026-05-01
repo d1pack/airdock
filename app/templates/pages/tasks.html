@@ -10,7 +10,13 @@
       <p class="eyebrow">Очередь выполнения</p>
       <h1>Задачи</h1>
     </div>
-    <div class="live-pill">{{ tasks|length }} задач</div>
+    <div class="task-page-actions">
+      <button class="button button--violet-glow button--compact" type="button" data-task-create-toggle aria-expanded="false" aria-controls="task-create-panel">
+        <i data-lucide="plus" aria-hidden="true"></i>
+        Добавить задачу
+      </button>
+      <div class="live-pill">{{ tasks|length }} задач</div>
+    </div>
   </header>
 
   {% if error == "missing_playbook" %}
@@ -18,7 +24,7 @@
   {% endif %}
 
   <section class="tasks-dashboard">
-    <article class="panel task-create-panel">
+    <article class="panel task-create-panel is-collapsed" id="task-create-panel" data-task-create-panel hidden>
       <div class="form-panel__header">
         <div class="form-panel__icon">
           <i data-lucide="list-plus" aria-hidden="true"></i>
@@ -27,6 +33,10 @@
           <h2>Добавить задачу</h2>
           <p>Создайте задачу запуска playbook вручную или сразу поставьте её в очередь.</p>
         </div>
+        <button class="button button--danger-glow button--compact task-create-panel__close" type="button" data-task-create-close>
+          <i data-lucide="x" aria-hidden="true"></i>
+          Выйти
+        </button>
       </div>
       {% if playbooks %}
         <form class="form form--soft task-create-form" method="post" action="/dashboard/tasks/">
@@ -47,9 +57,9 @@
             <input type="datetime-local" name="scheduled_at_msk">
           </label>
           <div class="task-create-actions">
-            <button class="button button--secondary" type="submit" name="action" value="create">
-              <i data-lucide="plus" aria-hidden="true"></i>
-              Создать
+            <button class="button button--success-glow" type="submit" name="action" value="create">
+              <i data-lucide="save" aria-hidden="true"></i>
+              Сохранить
             </button>
             <button class="button button--secondary" type="submit" name="action" value="schedule">
               <i data-lucide="clock" aria-hidden="true"></i>
@@ -58,6 +68,10 @@
             <button class="button button--primary" type="submit" name="action" value="enqueue">
               <i data-lucide="play" aria-hidden="true"></i>
               Создать и запустить
+            </button>
+            <button class="button button--danger-glow" type="button" data-task-create-close>
+              <i data-lucide="x" aria-hidden="true"></i>
+              Выйти
             </button>
           </div>
         </form>

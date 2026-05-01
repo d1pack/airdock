@@ -1,17 +1,14 @@
-from fastapi import APIRouter, Depends, Request
-
-from app.db.models import User
-from app.web.dependencies import get_optional_current_user
-from app.web.templates import templates
-
+from fastapi import APIRouter
+from fastapi.responses import RedirectResponse
 
 router = APIRouter()
 
 
 @router.get("/")
-async def landing(request: Request, current_user: User | None = Depends(get_optional_current_user)):
-    return templates.TemplateResponse(
-        request,
-        "pages/landing.html",
-        {"active_page": "home", "current_user": current_user},
-    )
+async def landing():
+    return RedirectResponse("/dashboard/login", status_code=303)
+
+
+@router.get("/login")
+async def login_alias():
+    return RedirectResponse("/dashboard/login", status_code=303)

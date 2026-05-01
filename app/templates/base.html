@@ -15,15 +15,21 @@
   <body>
     <div class="shell">
       <aside class="sidebar">
-        <a class="brand" href="/dashboard/">
-          <span class="brand__mark brand__mark--logo">AD</span>
+        <a class="brand" href="/dashboard/analytics">
+          <span class="brand__mark brand__mark--image">
+            <img src="/static/img/logo-icon.svg" alt="" aria-hidden="true">
+          </span>
           <span>
             <strong>AirDock</strong>
-            <small>Пространство запуска сервисов</small>
+            <small>Панель автоматизации</small>
           </span>
         </a>
 
         <nav class="nav" aria-label="Основная навигация">
+          <a class="nav__link {% if active_page == 'analytics' %}nav__link--active{% endif %}" href="/dashboard/analytics">
+            <span class="nav__icon"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span>
+            Аналитика
+          </a>
           <a class="nav__link {% if active_page == 'projects' %}nav__link--active{% endif %}" href="/dashboard/projects/">
             <span class="nav__icon"><i data-lucide="boxes" aria-hidden="true"></i></span>
             Проекты
@@ -58,7 +64,7 @@
             <div class="service-status" data-health-url="/dashboard/health">
               <span class="service-status__dot" aria-hidden="true"></span>
               <span class="service-status__body">
-                <strong>Веб-служба Airdocker</strong>
+                <strong>Web-служба Airdocker</strong>
                 <small data-health-text>Работает (HTTP: OK)</small>
               </span>
             </div>
@@ -74,7 +80,9 @@
 
         <div class="period-picker" aria-label="Управление сессией">
           <span>{{ current_user.username if current_user else "Гость" }}</span>
-          <span class="period-picker__active">{{ current_user.user_type.label if current_user else "Закрыто" }}</span>
+          <span class="period-picker__active">
+            {% if current_user and current_user.user_type.value == "owner" %}Владелец{% elif current_user and current_user.user_type.value == "admin" %}Администратор{% elif current_user %}Пользователь{% else %}Закрыто{% endif %}
+          </span>
           <form method="post" action="/dashboard/auth/refresh">
             <button type="submit">
               <i data-lucide="refresh-cw" aria-hidden="true"></i>

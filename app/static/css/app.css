@@ -9007,3 +9007,1078 @@ body.landing-body {
 .landing-body .button:disabled:hover {
   transform: none;
 }
+
+/* Dashboard pipeline status should remain readable in compact action areas */
+.pipeline-list .pipeline-card__actions {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  gap: 14px !important;
+}
+
+.pipeline-list .pipeline-card__actions .task-status {
+  width: auto !important;
+  max-width: min(420px, 100%) !important;
+  min-height: 48px !important;
+  height: auto !important;
+  flex: 1 1 260px !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+  line-height: 1.25 !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+.task-status__label {
+  min-width: 0;
+  display: block;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal !important;
+}
+
+.pipeline-list .pipeline-card__actions .task-status i {
+  flex: 0 0 auto;
+}
+
+.pipeline-list .pipeline-card__actions form {
+  flex: 0 0 auto !important;
+}
+
+@media (min-width: 1321px) {
+  .pipeline-list .pipeline-card__actions {
+    display: grid !important;
+    grid-template-columns: minmax(260px, 420px) auto;
+    align-items: center;
+  }
+}
+
+@media (max-width: 1320px) {
+  .pipeline-list .pipeline-card__actions .task-status {
+    flex: 0 1 auto !important;
+    max-width: none !important;
+  }
+}
+
+/* Shared dashboard depth: keep the soft blue ring visible on dense pages too */
+.content > * {
+  position: relative;
+  z-index: 2;
+}
+
+.content::after {
+  content: "";
+  position: absolute;
+  right: 5%;
+  bottom: 2%;
+  z-index: 1;
+  width: min(560px, 44vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, rgba(65, 76, 255, 0.34) 0 54%, transparent 66%),
+    radial-gradient(circle, transparent 0 67%, rgba(91, 113, 255, 0.18) 68% 69%, transparent 70%);
+  filter: blur(0.1px);
+}
+
+.tasks-dashboard,
+.activity-log-panel {
+  position: relative;
+  z-index: 1;
+}
+
+.task-create-panel,
+.task-filter-panel,
+.task-list-panel,
+.activity-log-panel {
+  background:
+    radial-gradient(circle at 78% 88%, rgba(65, 76, 255, 0.22) 0 18%, rgba(65, 76, 255, 0.1) 18.4% 18.8%, transparent 19.2% 100%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.014)),
+    rgba(14, 19, 40, 0.36) !important;
+  backdrop-filter: blur(22px) saturate(1.22) !important;
+}
+
+.task-list-panel,
+.activity-log-panel {
+  background:
+    radial-gradient(circle at 82% 72%, rgba(65, 76, 255, 0.32) 0 22%, rgba(65, 76, 255, 0.12) 22.4% 22.9%, transparent 23.2% 100%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.014)),
+    rgba(14, 19, 40, 0.34) !important;
+}
+
+.activity-log-panel {
+  background:
+    radial-gradient(circle at 82% 24%, rgba(65, 76, 255, 0.3) 0 18%, rgba(65, 76, 255, 0.12) 18.4% 18.9%, transparent 19.4% 100%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.014)),
+    rgba(14, 19, 40, 0.34) !important;
+}
+
+.task-list-panel .task-card,
+.activity-log-panel .activity-event {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
+    rgba(10, 15, 31, 0.38) !important;
+}
+
+.activity-log-panel {
+  overflow: hidden;
+}
+
+.activity-log-panel::after {
+  content: "";
+  position: absolute;
+  right: -2%;
+  top: 18%;
+  z-index: 3;
+  width: min(520px, 44vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, rgba(65, 76, 255, 0.18) 0 54%, transparent 66%),
+    radial-gradient(circle, transparent 0 67%, rgba(91, 113, 255, 0.22) 68% 69%, transparent 70%);
+  mix-blend-mode: screen;
+  opacity: 0.82;
+}
+
+.activity-log-panel > * {
+  position: relative;
+  z-index: 2;
+}
+
+.tasks-dashboard::after {
+  content: "";
+  position: absolute;
+  right: 4%;
+  top: 54%;
+  z-index: 1;
+  width: min(520px, 44vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, rgba(65, 76, 255, 0.23) 0 54%, transparent 66%),
+    radial-gradient(circle, transparent 0 67%, rgba(91, 113, 255, 0.13) 68% 69%, transparent 70%);
+}
+
+.tasks-dashboard > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Single dashboard background ring: no duplicate rings inside task/activity cards */
+.content::after,
+.tasks-dashboard::after,
+.activity-log-panel::after {
+  content: none !important;
+  display: none !important;
+}
+
+.content::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 78% 82%, rgba(65, 76, 255, 0.42), transparent 27%),
+    radial-gradient(circle at 78% 82%, transparent 0 17%, rgba(91, 113, 255, 0.1) 17.2% 17.5%, transparent 17.8% 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 44%) !important;
+}
+
+.task-create-panel,
+.task-filter-panel,
+.task-list-panel,
+.activity-log-panel {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.014)),
+    rgba(14, 19, 40, 0.44) !important;
+}
+
+.task-list-panel .task-card,
+.activity-log-panel .activity-event {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
+    rgba(10, 15, 31, 0.48) !important;
+}
+
+/* Collapsible task creation form */
+.task-page-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.task-page-actions .button {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.task-page-actions .button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.task-create-panel[hidden] {
+  display: none !important;
+}
+
+.task-create-panel.is-open {
+  animation: task-create-open 220ms ease both;
+}
+
+.task-create-panel__close {
+  margin-left: auto;
+}
+
+.task-create-actions {
+  align-items: center;
+}
+
+.button--success-glow,
+.button--violet-glow,
+.button--danger-glow {
+  color: #ffffff !important;
+  border-width: 1px !important;
+  backdrop-filter: blur(14px) saturate(1.25);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+}
+
+.button--violet-glow {
+  border-color: rgba(139, 92, 246, 0.54) !important;
+  background:
+    linear-gradient(135deg, rgba(99, 102, 241, 0.68), rgba(168, 85, 247, 0.42)),
+    rgba(79, 70, 229, 0.18) !important;
+  box-shadow:
+    0 0 0 4px rgba(99, 102, 241, 0.12),
+    0 16px 34px rgba(99, 102, 241, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.17) !important;
+}
+
+.button--violet-glow:hover {
+  border-color: rgba(196, 181, 253, 0.68) !important;
+  background:
+    linear-gradient(135deg, rgba(59, 130, 246, 0.74), rgba(168, 85, 247, 0.5)),
+    rgba(99, 102, 241, 0.22) !important;
+  box-shadow:
+    0 0 0 5px rgba(139, 92, 246, 0.16),
+    0 20px 42px rgba(99, 102, 241, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.button--success-glow {
+  border-color: rgba(25, 135, 84, 0.46) !important;
+  background:
+    linear-gradient(135deg, rgba(25, 135, 84, 0.62), rgba(35, 194, 122, 0.38)),
+    rgba(25, 135, 84, 0.18) !important;
+  box-shadow:
+    0 0 0 4px rgba(25, 135, 84, 0.12),
+    0 16px 34px rgba(25, 135, 84, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+}
+
+.button--success-glow:hover {
+  border-color: rgba(35, 194, 122, 0.62) !important;
+  background:
+    linear-gradient(135deg, rgba(32, 201, 151, 0.7), rgba(25, 135, 84, 0.44)),
+    rgba(25, 135, 84, 0.2) !important;
+  box-shadow:
+    0 0 0 5px rgba(25, 135, 84, 0.16),
+    0 20px 42px rgba(25, 135, 84, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+}
+
+.button--danger-glow {
+  border-color: rgba(220, 53, 69, 0.46) !important;
+  background:
+    linear-gradient(135deg, rgba(220, 53, 69, 0.62), rgba(255, 118, 112, 0.36)),
+    rgba(220, 53, 69, 0.16) !important;
+  box-shadow:
+    0 0 0 4px rgba(220, 53, 69, 0.1),
+    0 16px 34px rgba(220, 53, 69, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+.button--danger-glow:hover {
+  border-color: rgba(255, 118, 112, 0.64) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 118, 112, 0.7), rgba(220, 53, 69, 0.42)),
+    rgba(220, 53, 69, 0.18) !important;
+  box-shadow:
+    0 0 0 5px rgba(220, 53, 69, 0.15),
+    0 20px 42px rgba(220, 53, 69, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+}
+
+@keyframes task-create-open {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 720px) {
+  .task-page-actions,
+  .task-page-actions .button,
+  .task-page-actions .live-pill,
+  .task-create-panel__close {
+    width: 100%;
+  }
+}
+
+/* Analytics dashboard */
+.analytics-header .page-subtitle {
+  max-width: 620px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.analytics-overview {
+  margin-bottom: 22px;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.65fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.analytics-panel {
+  min-width: 0;
+}
+
+.analytics-panel--wide {
+  grid-row: span 2;
+}
+
+.analytics-panel--tasks {
+  grid-column: 1 / -1;
+}
+
+.analytics-resource-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.analytics-resource {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(183, 194, 255, 0.12);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025)),
+    rgba(10, 14, 28, 0.46);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.analytics-resource span,
+.analytics-stat-list small,
+.analytics-task small,
+.analytics-node small {
+  color: var(--muted);
+}
+
+.analytics-resource strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+}
+
+.analytics-resource > i {
+  display: block;
+  height: 7px;
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.analytics-resource > i > b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.95), rgba(168, 85, 247, 0.95));
+  box-shadow: 0 0 18px rgba(99, 102, 241, 0.42);
+  transition: width 220ms ease;
+}
+
+.analytics-node-list,
+.analytics-stat-list {
+  display: grid;
+  gap: 10px;
+}
+
+.analytics-task-list {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 10px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.55) rgba(255, 255, 255, 0.08);
+}
+
+.analytics-task-list::-webkit-scrollbar {
+  height: 8px;
+}
+
+.analytics-task-list::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.analytics-task-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.82), rgba(168, 85, 247, 0.82));
+}
+
+.analytics-node,
+.analytics-task,
+.analytics-stat-list span {
+  display: grid;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid rgba(183, 194, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.analytics-node {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.analytics-node__icon {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  color: #dbeafe;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.36), rgba(168, 85, 247, 0.26));
+  border: 1px solid rgba(147, 197, 253, 0.18);
+}
+
+.analytics-node strong,
+.analytics-task strong {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analytics-stat-list span {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.analytics-stat-list strong {
+  font-size: 22px;
+}
+
+.analytics-task {
+  flex: 0 0 min(280px, 82vw);
+  min-height: 132px;
+  align-content: start;
+  text-decoration: none;
+  color: var(--text);
+  scroll-snap-align: start;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.analytics-task:hover {
+  transform: translateY(-2px);
+  border-color: rgba(168, 85, 247, 0.38);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+@media (max-width: 1180px) {
+  .analytics-grid,
+  .analytics-resource-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .analytics-panel--wide {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .analytics-grid,
+  .analytics-resource-grid,
+  .analytics-node {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-node {
+    justify-items: start;
+  }
+}
+
+/* AirDock brand assets */
+.brand__mark--image {
+  overflow: visible !important;
+  padding: 0 !important;
+  color: transparent !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow:
+    0 0 22px rgba(37, 99, 235, 0.52),
+    0 0 42px rgba(34, 211, 238, 0.24) !important;
+}
+
+.brand__mark--image img {
+  width: 112%;
+  height: 112%;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  transform: scale(1.12);
+  filter:
+    drop-shadow(0 0 10px rgba(46, 139, 255, 0.58))
+    drop-shadow(0 0 20px rgba(50, 215, 232, 0.22));
+}
+
+.auth-card__brand--logo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.auth-logo {
+  width: min(100%, 360px);
+  height: auto;
+  display: block;
+  border-radius: 18px;
+  border: 1px solid rgba(96, 165, 250, 0.18);
+  background: rgba(5, 10, 24, 0.78);
+  box-shadow:
+    0 18px 42px rgba(37, 99, 235, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.auth-card__brand--logo h1 {
+  margin-top: 4px;
+}
+
+@media (max-width: 540px) {
+  .auth-logo {
+    border-radius: 14px;
+  }
+}
+
+/* Responsive maintenance layer
+   Keep new adaptive changes here so the team can tune breakpoints safely. */
+:root {
+  --responsive-page-gap: clamp(12px, 2vw, 28px);
+  --responsive-card-gap: clamp(12px, 1.6vw, 18px);
+  --responsive-card-padding: clamp(14px, 1.8vw, 22px);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+.content,
+.panel,
+.metric-card,
+.runner-card,
+.project-card,
+.pipeline-card,
+.task-card,
+.activity-event,
+.form,
+.form--soft,
+.inline-form,
+.custom-select,
+.custom-select__button,
+.CodeMirror {
+  min-width: 0;
+}
+
+.page-header,
+.panel__header,
+.form-panel__header,
+.project-hero,
+.pipeline-card,
+.pipeline-card__main,
+.task-card,
+.activity-event,
+.analytics-node,
+.docker-container-card,
+.runner-card,
+.project-card {
+  overflow-wrap: anywhere;
+}
+
+.content {
+  overflow-x: clip;
+}
+
+.panel,
+.metric-card,
+.runner-card,
+.auth-card,
+.form-panel,
+.settings-panel,
+.task-create-panel,
+.task-filter-panel,
+.task-list-panel,
+.activity-log-panel {
+  padding: var(--responsive-card-padding);
+}
+
+.table,
+.panel--table table {
+  width: 100%;
+}
+
+.panel--table,
+.table-wrap,
+.docker-containers-rail,
+.docker-images-rail,
+.analytics-task-list,
+.pipeline-builder__playbook-list,
+.playbook-files,
+.cmd-log,
+.task-log,
+.terminal-output,
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+input,
+select,
+textarea,
+button,
+.button,
+.icon-button,
+.custom-select__button {
+  max-width: 100%;
+}
+
+textarea,
+pre,
+code,
+.CodeMirror,
+.cm-editor,
+.yaml-editor,
+.cmd-log,
+.task-log,
+.terminal-output {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+@media (max-width: 1180px) {
+  .metric-grid,
+  .dashboard-grid,
+  .project-grid,
+  .runner-grid,
+  .pipeline-grid,
+  .monitoring-grid,
+  .docker-summary-grid,
+  .analytics-resource-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .project-detail-grid,
+  .project-settings-grid,
+  .pipeline-builder,
+  .playbook-detail-grid,
+  .task-detail-grid,
+  .users-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .panel--wide,
+  .monitoring-panel,
+  .docker-containers-panel,
+  .analytics-panel--wide,
+  .analytics-panel--tasks {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .shell {
+    width: min(100% - 24px, 1180px) !important;
+    min-height: auto !important;
+    margin: 12px auto !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: var(--responsive-page-gap) !important;
+  }
+
+  .sidebar {
+    position: sticky !important;
+    top: 8px !important;
+    left: auto !important;
+    z-index: 50 !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: min(42dvh, 360px) !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    border-radius: 22px !important;
+  }
+
+  .content {
+    width: 100% !important;
+    min-height: auto !important;
+    margin-left: 0 !important;
+    padding: var(--responsive-page-gap) !important;
+    border-radius: 22px !important;
+  }
+
+  .brand {
+    margin-bottom: 14px !important;
+  }
+
+  .nav {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    padding: 0 0 10px !important;
+    scroll-snap-type: x proximity;
+  }
+
+  .nav__link {
+    flex: 0 0 auto !important;
+    min-height: 44px !important;
+    white-space: nowrap !important;
+    scroll-snap-align: start;
+  }
+
+  .admin-status,
+  .period-picker {
+    margin-top: 12px !important;
+  }
+
+  .period-picker {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .period-picker form,
+  .period-picker button {
+    width: 100% !important;
+  }
+
+  .page-header {
+    align-items: stretch !important;
+    gap: 14px !important;
+  }
+
+  .page-header > * {
+    min-width: 0;
+  }
+
+  .page-header > .button,
+  .page-header > .task-page-actions,
+  .page-header > .live-pill {
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 760px) {
+  .shell {
+    width: min(100% - 16px, 760px) !important;
+    margin: 8px auto !important;
+  }
+
+  .content {
+    padding: 14px !important;
+  }
+
+  .page-header,
+  .panel__header,
+  .form-panel__header,
+  .project-hero,
+  .pipeline-card__main,
+  .task-card,
+  .activity-event,
+  .analytics-node,
+  .docker-container-card,
+  .runner-card,
+  .project-card,
+  .inline-form,
+  .task-filter-form,
+  .task-create-actions,
+  .pipeline-card__actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+    justify-items: stretch !important;
+  }
+
+  .metric-grid,
+  .dashboard-grid,
+  .project-grid,
+  .runner-grid,
+  .pipeline-grid,
+  .monitoring-grid,
+  .docker-summary-grid,
+  .analytics-grid,
+  .analytics-resource-grid,
+  .form-grid,
+  .task-filter-form,
+  .pipeline-step-grid,
+  .playbook-files,
+  .users-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .button,
+  .page-header .button,
+  .task-page-actions,
+  .task-page-actions .button,
+  .task-page-actions .live-pill,
+  .inline-form .button,
+  .form .button,
+  .auth-form .button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .live-pill,
+  .task-status,
+  .runner-status,
+  .status-badge {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .panel--table .table,
+  .table {
+    min-width: 640px;
+  }
+
+  .analytics-task {
+    flex-basis: min(300px, 88vw);
+  }
+
+  .CodeMirror,
+  .cm-editor,
+  .yaml-editor {
+    max-height: 70dvh;
+  }
+}
+
+@media (max-width: 540px) {
+  body {
+    min-width: 320px;
+  }
+
+  .sidebar,
+  .content,
+  .panel,
+  .metric-card,
+  .runner-card,
+  .auth-card,
+  .form-panel,
+  .settings-panel {
+    border-radius: 16px !important;
+  }
+
+  .brand {
+    gap: 10px !important;
+  }
+
+  .brand__mark {
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px !important;
+  }
+
+  .brand strong {
+    font-size: 17px !important;
+  }
+
+  .brand small {
+    font-size: 11px !important;
+    white-space: normal !important;
+  }
+
+  .admin-status {
+    display: grid !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+
+  .admin-status__title,
+  .service-status {
+    min-height: 0 !important;
+  }
+
+  .period-picker {
+    grid-template-columns: 1fr !important;
+  }
+
+  .page-header h1 {
+    font-size: clamp(26px, 9vw, 34px) !important;
+    line-height: 1.05 !important;
+  }
+
+  .panel__header h2,
+  .form-panel__header h2 {
+    font-size: 18px !important;
+  }
+
+  .auth-shell {
+    width: min(100% - 16px, 430px) !important;
+  }
+
+  .auth-card {
+    padding: 18px !important;
+  }
+
+  .auth-logo {
+    width: 100% !important;
+  }
+
+  .toast-viewport {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 10px !important;
+  }
+}
+
+/* Page navigation flicker guard
+   Prevent black rectangles while the browser swaps full HTML pages. */
+html,
+body {
+  background-color: #070b18 !important;
+}
+
+.content,
+.auth-card {
+  animation: none !important;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none !important;
+  mix-blend-mode: normal !important;
+  background: #070b18 !important;
+}
+
+/* Logo mark fix: round glow container with centered SVG */
+.brand .brand__mark--image {
+  width: 54px !important;
+  height: 54px !important;
+  flex: 0 0 54px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: visible !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.2), rgba(7, 11, 24, 0.02) 64%, transparent 72%) !important;
+  border: 0 !important;
+  box-shadow:
+    0 0 18px rgba(37, 99, 235, 0.46),
+    0 0 38px rgba(34, 211, 238, 0.2) !important;
+}
+
+.brand .brand__mark--image img {
+  width: 82% !important;
+  height: 82% !important;
+  margin: auto !important;
+  display: block !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+}
+
+@media (max-width: 540px) {
+  .brand .brand__mark--image {
+    width: 46px !important;
+    height: 46px !important;
+    flex-basis: 46px !important;
+  }
+}
+
+/* Analytics alignment fix: keep panels on the same column grid as the top metrics */
+.analytics-grid {
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.75fr) !important;
+  align-items: start !important;
+}
+
+.analytics-panel--wide {
+  grid-column: 1 / 2 !important;
+  grid-row: auto !important;
+}
+
+.analytics-panel--tasks {
+  grid-column: 1 / -1 !important;
+  grid-row: auto !important;
+}
+
+.analytics-panel--tasks .analytics-task-list {
+  display: flex !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 2px 2px 10px !important;
+}
+
+.analytics-panel--tasks .analytics-task {
+  flex: 0 0 min(280px, 82vw) !important;
+  min-height: 132px !important;
+}
+
+@media (max-width: 1180px) {
+  .analytics-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .analytics-panel--wide,
+  .analytics-panel--tasks {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+  }
+
+  .analytics-panel--tasks .analytics-task-list {
+    display: flex !important;
+    overflow-x: auto !important;
+    padding: 2px 2px 10px !important;
+  }
+
+  .analytics-panel--tasks .analytics-task {
+    flex: 0 0 min(280px, 82vw) !important;
+  }
+}

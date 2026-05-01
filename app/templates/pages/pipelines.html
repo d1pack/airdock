@@ -59,7 +59,8 @@
 
         <div class="pipeline-card__actions">
           <span class="task-status task-status--{{ latest_task.status_tone if latest_task else 'neutral' }}">
-            <i></i>{{ latest_task.status_label if latest_task else "Еще не запускался" }}
+            <i></i>
+            <span class="task-status__label">{{ latest_task.status_label if latest_task else "Еще не запускался" }}</span>
           </span>
           <form method="post" action="/dashboard/pipelines/{{ pipeline.id }}/run">
             <button class="button button--primary button--compact" type="submit" {% if not pipeline.steps %}disabled{% endif %} aria-label="Запустить пайплайн {{ pipeline.name }}">

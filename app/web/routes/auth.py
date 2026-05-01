@@ -31,7 +31,7 @@ async def login(
         return RedirectResponse("/dashboard/login?error=invalid", status_code=303)
 
     access_token, refresh_token = create_auth_pair(db, user)
-    response = RedirectResponse("/dashboard/", status_code=303)
+    response = RedirectResponse("/dashboard/analytics", status_code=303)
     _set_auth_cookies(response, access_token, refresh_token)
     return response
 
@@ -49,7 +49,7 @@ async def refresh(request: Request, db: Session = Depends(get_db)):
         return response
 
     access_token, new_refresh_token, _user = token_pair
-    response = RedirectResponse("/dashboard/", status_code=303)
+    response = RedirectResponse("/dashboard/analytics", status_code=303)
     _set_auth_cookies(response, access_token, new_refresh_token)
     return response
 

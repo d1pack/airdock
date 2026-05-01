@@ -62,7 +62,7 @@ def _auth_error(request: Request) -> HTTPException:
     if "text/html" in accepts:
         return HTTPException(
             status_code=status.HTTP_303_SEE_OTHER,
-            headers={"Location": "/login"},
+            headers={"Location": "/dashboard/login"},
         )
 
     return HTTPException(

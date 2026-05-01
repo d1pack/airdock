@@ -193,6 +193,37 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  const taskCreatePanel = document.querySelector("[data-task-create-panel]");
+  const taskCreateToggle = document.querySelector("[data-task-create-toggle]");
+  const taskCreateCloseButtons = document.querySelectorAll("[data-task-create-close]");
+  if (taskCreatePanel && taskCreateToggle) {
+    const setTaskCreateOpen = (open) => {
+      taskCreatePanel.hidden = !open;
+      taskCreatePanel.classList.toggle("is-collapsed", !open);
+      taskCreatePanel.classList.toggle("is-open", open);
+      taskCreateToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open) {
+        window.requestAnimationFrame(() => {
+          taskCreatePanel.querySelector("input, .custom-select__button, select, textarea")?.focus();
+        });
+      } else {
+        taskCreateToggle.focus();
+      }
+    };
+
+    taskCreateToggle.addEventListener("click", () => {
+      setTaskCreateOpen(taskCreatePanel.hidden);
+    });
+    taskCreateCloseButtons.forEach((button) => {
+      button.addEventListener("click", () => setTaskCreateOpen(false));
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !taskCreatePanel.hidden) {
+        setTaskCreateOpen(false);
+      }
+    });
+  }
+
   const initPipelineBuilder = () => {
     const builder = document.querySelector("[data-pipeline-builder]");
     if (!builder) {
@@ -1098,5 +1129,108 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updateProjectMetrics();
     window.setInterval(updateProjectMetrics, 10000);
+  }
+
+  const analyticsPanel = document.querySelector("[data-analytics-metrics]");
+  if (analyticsPanel) {
+    const metricsUrl = analyticsPanel.getAttribute("data-analytics-metrics");
+    const updatedLabel = document.querySelector("[data-analytics-updated]");
+    const statusLabel = analyticsPanel.querySelector("[data-analytics-status]");
+    const nodesList = analyticsPanel.querySelector("[data-analytics-nodes]");
+
+    const setAnalyticsValue = (key, value, suffix = "") => {
+      document.querySelectorAll(`[data-analytics-value="${key}"]`).forEach((element) => {
+        element.textContent = `${value}${suffix}`;
+      });
+    };
+
+    const setAnalyticsFill = (key, value) => {
+      const percent = Math.max(0, Math.min(100, Number(value || 0)));
+      document.querySelectorAll(`[data-analytics-fill="${key}"]`).forEach((element) => {
+        element.style.width = `${percent}%`;
+      });
+    };
+
+    const renderAnalyticsNodes = (nodes) => {
+      if (!nodesList) {
+        return;
+      }
+      if (!nodes || nodes.length === 0) {
+        nodesList.innerHTML = `
+          <article class="docker-container-empty">
+            <i data-lucide="radio-tower" aria-hidden="true"></i>
+            <span>Курьеры пока не созданы.</span>
+          </article>
+        `;
+        if (window.lucide) {
+          window.lucide.createIcons({ nodes: nodesList.querySelectorAll("[data-lucide]") });
+        }
+        return;
+      }
+      nodesList.innerHTML = nodes.map((node) => {
+        const online = node.status === "up";
+        return `
+          <article class="analytics-node analytics-node--${online ? "up" : "down"}">
+            <span class="analytics-node__icon"><i data-lucide="radio-tower" aria-hidden="true"></i></span>
+            <div>
+              <strong>${escapeHtml(node.name)}</strong>
+              <small>${escapeHtml(node.server_ip)} · CPU ${Number(node.cpu || 0).toFixed(1)}% · RAM ${Number(node.ram || 0).toFixed(1)}%</small>
+            </div>
+            <span class="runner-status runner-status--${online ? "up" : "down"}">
+              <i></i>${online ? `Онлайн · ${escapeHtml(node.uptime || "uptime")}` : "Нет связи"}
+            </span>
+          </article>
+        `;
+      }).join("");
+      if (window.lucide) {
+        window.lucide.createIcons({ nodes: nodesList.querySelectorAll("[data-lucide]") });
+      }
+    };
+
+    const updateAnalyticsMetrics = async () => {
+      try {
+        const response = await fetch(metricsUrl, {
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP: ${response.status}`);
+        }
+        const payload = await response.json();
+        const metrics = payload.metrics || {};
+        setAnalyticsValue("nodes", `${payload.nodes_online || 0} / ${payload.nodes_total || 0}`);
+        setAnalyticsValue("cpu", Number(metrics.cpu || 0).toFixed(1), "%");
+        setAnalyticsValue("ram", Number(metrics.ram || 0).toFixed(1), "%");
+        setAnalyticsValue("disk", Number(metrics.disk || 0).toFixed(1), "%");
+        setAnalyticsValue("services", metrics.services || 0);
+        setAnalyticsValue("tasks", metrics.tasks || 0);
+        setAnalyticsFill("cpu", metrics.cpu);
+        setAnalyticsFill("ram", metrics.ram);
+        setAnalyticsFill("disk", metrics.disk);
+        setAnalyticsFill("tasks", Math.min(Number(metrics.tasks || 0), 100));
+        renderAnalyticsNodes(payload.nodes);
+        if (updatedLabel) {
+          updatedLabel.textContent = payload.errors?.length ? payload.errors[0] : "Метрики обновлены";
+        }
+        if (statusLabel) {
+          const hasOnline = Number(payload.nodes_online || 0) > 0;
+          statusLabel.classList.toggle("runner-status--up", hasOnline);
+          statusLabel.classList.toggle("runner-status--down", !hasOnline);
+          statusLabel.innerHTML = `<i></i>${hasOnline ? "Курьеры отвечают" : "Нет доступных курьеров"}`;
+        }
+      } catch (error) {
+        if (updatedLabel) {
+          updatedLabel.textContent = error.message || "Метрики недоступны";
+        }
+        if (statusLabel) {
+          statusLabel.classList.remove("runner-status--up");
+          statusLabel.classList.add("runner-status--down");
+          statusLabel.innerHTML = "<i></i>Ошибка метрик";
+        }
+      }
+    };
+
+    updateAnalyticsMetrics();
+    window.setInterval(updateAnalyticsMetrics, 15000);
   }
 });
