@@ -74,9 +74,9 @@ async def create_project(
         db.commit()
     except IntegrityError:
         db.rollback()
-        return RedirectResponse("/projects/?error=duplicate", status_code=303)
+        return RedirectResponse("/dashboard/projects/?error=duplicate", status_code=303)
 
-    return RedirectResponse(f"/projects/{project.id}", status_code=303)
+    return RedirectResponse(f"/dashboard/projects/{project.id}", status_code=303)
 
 
 @router.get("/{project_id}")
@@ -88,9 +88,9 @@ async def detail(
 ):
     project = _get_project(db, project_id)
     if project is None:
-        return RedirectResponse("/projects/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/projects/?error=missing", status_code=303)
     if not _can_view_project(current_user, project):
-        return RedirectResponse("/projects/?error=forbidden", status_code=303)
+        return RedirectResponse("/dashboard/projects/?error=forbidden", status_code=303)
 
     metrics_task = ensure_metrics_task(db, project=project)
     if metrics_task is not None:
@@ -117,9 +117,9 @@ async def settings(
 ):
     project = _get_project(db, project_id)
     if project is None:
-        return RedirectResponse("/projects/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/projects/?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=forbidden", status_code=303)
 
     users = db.scalars(select(User).order_by(User.username)).all()
     all_nodes = db.scalars(select(Node).order_by(Node.name)).all()
@@ -150,9 +150,9 @@ async def update_project_settings(
 ):
     project = _get_project(db, project_id)
     if project is None:
-        return RedirectResponse("/projects/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/projects/?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=forbidden", status_code=303)
 
     project.name = name.strip()
     project.description = description.strip()
@@ -160,8 +160,8 @@ async def update_project_settings(
         db.commit()
     except IntegrityError:
         db.rollback()
-        return RedirectResponse(f"/projects/{project_id}/settings?error=duplicate", status_code=303)
-    return RedirectResponse(f"/projects/{project_id}/settings", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}/settings?error=duplicate", status_code=303)
+    return RedirectResponse(f"/dashboard/projects/{project_id}/settings", status_code=303)
 
 
 @router.get("/{project_id}/metrics")
@@ -200,9 +200,9 @@ async def add_project_user(
 ):
     project = _get_project(db, project_id)
     if project is None:
-        return RedirectResponse("/projects/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/projects/?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=forbidden", status_code=303)
 
     db.add(ProjectUser(project_id=project_id, user_id=user_id))
     try:
@@ -224,9 +224,9 @@ async def assign_node(
     project = _get_project(db, project_id)
     node = db.get(Node, node_id)
     if project is None or node is None:
-        return RedirectResponse(f"/projects/{project_id}?error=missing", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=forbidden", status_code=303)
 
     db.add(ProjectNode(project_id=project.id, node_id=node.id))
     try:
@@ -250,9 +250,9 @@ async def create_and_assign_node(
 ):
     project = _get_project(db, project_id)
     if project is None:
-        return RedirectResponse("/projects/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/projects/?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=forbidden", status_code=303)
 
     node = Node(
         name=name.strip(),
@@ -383,9 +383,9 @@ async def add_container(
     project = _get_project(db, project_id)
     node = db.get(Node, node_id)
     if project is None or node is None or not _project_has_node(project, node.id):
-        return RedirectResponse(f"/projects/{project_id}?error=missing", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=forbidden", status_code=303)
 
     db.add(
         ProjectContainer(
@@ -397,7 +397,7 @@ async def add_container(
         )
     )
     db.commit()
-    return RedirectResponse(f"/projects/{project_id}", status_code=303)
+    return RedirectResponse(f"/dashboard/projects/{project_id}", status_code=303)
 
 
 def _get_project(db: Session, project_id: int) -> Project | None:
@@ -429,7 +429,7 @@ def _project_has_node(project: Project, node_id: int) -> bool:
 
 
 def _project_return_url(project_id: int, target: str) -> str:
-    return f"/projects/{project_id}/settings" if target == "settings" else f"/projects/{project_id}"
+    return f"/dashboard/projects/{project_id}/settings" if target == "settings" else f"/dashboard/projects/{project_id}"
 
 
 @router.post("/{project_id}/playbooks")
@@ -444,9 +444,9 @@ async def add_playbook(
 ):
     project = _get_project(db, project_id)
     if project is None:
-        return RedirectResponse("/projects/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/projects/?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=forbidden", status_code=303)
 
     db.add(
         AnsiblePlaybook(
@@ -458,7 +458,7 @@ async def add_playbook(
         )
     )
     db.commit()
-    return RedirectResponse(f"/projects/{project_id}", status_code=303)
+    return RedirectResponse(f"/dashboard/projects/{project_id}", status_code=303)
 
 
 @router.post("/{project_id}/playbooks/{playbook_id}/update")
@@ -476,15 +476,15 @@ async def update_playbook(
     project = _get_project(db, project_id)
     playbook = db.get(AnsiblePlaybook, playbook_id)
     if project is None or playbook is None or playbook.project_id != project.id:
-        return RedirectResponse(f"/projects/{project_id}?error=missing", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=forbidden", status_code=303)
 
     target_project = db.get(Project, target_project_id)
     if target_project is None:
-        return RedirectResponse(f"/projects/{project_id}/playbooks/{playbook_id}?error=missing", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}/playbooks/{playbook_id}?error=missing", status_code=303)
     if not _can_edit_project(current_user, target_project):
-        return RedirectResponse(f"/projects/{project_id}/playbooks/{playbook_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}/playbooks/{playbook_id}?error=forbidden", status_code=303)
 
     playbook.name = name.strip()
     playbook.project_id = target_project.id
@@ -492,7 +492,7 @@ async def update_playbook(
     playbook.run_command = _normalize_playbook_run_command(run_command)
     playbook.content = content.strip()
     db.commit()
-    return RedirectResponse(f"/projects/{target_project.id}/playbooks/{playbook_id}", status_code=303)
+    return RedirectResponse(f"/dashboard/projects/{target_project.id}/playbooks/{playbook_id}", status_code=303)
 
 
 @router.post("/{project_id}/playbooks/{playbook_id}/delete")
@@ -505,13 +505,13 @@ async def delete_playbook(
     project = _get_project(db, project_id)
     playbook = db.get(AnsiblePlaybook, playbook_id)
     if project is None or playbook is None or playbook.project_id != project.id:
-        return RedirectResponse(f"/projects/{project_id}?error=missing", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=forbidden", status_code=303)
 
     db.delete(playbook)
     db.commit()
-    return RedirectResponse(f"/projects/{project_id}", status_code=303)
+    return RedirectResponse(f"/dashboard/projects/{project_id}", status_code=303)
 
 
 @router.post("/{project_id}/playbooks/{playbook_id}/clone")
@@ -524,9 +524,9 @@ async def clone_playbook(
     project = _get_project(db, project_id)
     playbook = db.get(AnsiblePlaybook, playbook_id)
     if project is None or playbook is None or playbook.project_id != project.id:
-        return RedirectResponse(f"/projects/{project_id}?error=missing", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=forbidden", status_code=303)
 
     cloned_playbook = AnsiblePlaybook(
         project_id=project.id,
@@ -540,7 +540,7 @@ async def clone_playbook(
     for file in playbook.files:
         db.add(AnsiblePlaybookFile(playbook_id=cloned_playbook.id, path=file.path, content=file.content))
     db.commit()
-    return RedirectResponse(f"/projects/{project_id}/playbooks/{cloned_playbook.id}", status_code=303)
+    return RedirectResponse(f"/dashboard/projects/{project_id}/playbooks/{cloned_playbook.id}", status_code=303)
 
 
 @router.post("/{project_id}/playbooks/{playbook_id}/run")
@@ -554,9 +554,9 @@ async def run_project_playbook(
     project = _get_project(db, project_id)
     playbook = db.get(AnsiblePlaybook, playbook_id)
     if project is None or playbook is None or playbook.project_id != project.id:
-        return RedirectResponse(f"/projects/{project_id}?error=missing", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=forbidden", status_code=303)
 
     task = create_playbook_task(db, project=project, playbook=playbook, user=current_user)
     playbook.last_status = "queued"
@@ -564,8 +564,8 @@ async def run_project_playbook(
     await enqueue_task_id(task.id)
 
     if next == "playbook":
-        return RedirectResponse(f"/projects/{project_id}/playbooks/{playbook_id}?task={task.id}", status_code=303)
-    return RedirectResponse(f"/projects/{project_id}?task={task.id}", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}/playbooks/{playbook_id}?task={task.id}", status_code=303)
+    return RedirectResponse(f"/dashboard/projects/{project_id}?task={task.id}", status_code=303)
 
 
 @router.post("/{project_id}/playbooks/{playbook_id}/files")
@@ -580,17 +580,17 @@ async def add_playbook_file(
     project = _get_project(db, project_id)
     playbook = db.get(AnsiblePlaybook, playbook_id)
     if project is None or playbook is None or playbook.project_id != project.id:
-        return RedirectResponse(f"/projects/{project_id}?error=missing", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}/playbooks/{playbook_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}/playbooks/{playbook_id}?error=forbidden", status_code=303)
 
     db.add(AnsiblePlaybookFile(playbook_id=playbook.id, path=_normalize_playbook_file_path(path), content=content))
     try:
         db.commit()
     except IntegrityError:
         db.rollback()
-        return RedirectResponse(f"/projects/{project_id}/playbooks/{playbook_id}?error=duplicate_file", status_code=303)
-    return RedirectResponse(f"/projects/{project_id}/playbooks/{playbook_id}", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}/playbooks/{playbook_id}?error=duplicate_file", status_code=303)
+    return RedirectResponse(f"/dashboard/projects/{project_id}/playbooks/{playbook_id}", status_code=303)
 
 
 @router.post("/{project_id}/playbooks/{playbook_id}/files/{file_id}/update")
@@ -607,9 +607,9 @@ async def update_playbook_file(
     playbook = db.get(AnsiblePlaybook, playbook_id)
     file = db.get(AnsiblePlaybookFile, file_id)
     if project is None or playbook is None or file is None or playbook.project_id != project.id or file.playbook_id != playbook.id:
-        return RedirectResponse(f"/projects/{project_id}?error=missing", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}/playbooks/{playbook_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}/playbooks/{playbook_id}?error=forbidden", status_code=303)
 
     file.path = _normalize_playbook_file_path(path)
     file.content = content
@@ -617,8 +617,8 @@ async def update_playbook_file(
         db.commit()
     except IntegrityError:
         db.rollback()
-        return RedirectResponse(f"/projects/{project_id}/playbooks/{playbook_id}?error=duplicate_file", status_code=303)
-    return RedirectResponse(f"/projects/{project_id}/playbooks/{playbook_id}", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}/playbooks/{playbook_id}?error=duplicate_file", status_code=303)
+    return RedirectResponse(f"/dashboard/projects/{project_id}/playbooks/{playbook_id}", status_code=303)
 
 
 @router.post("/{project_id}/playbooks/{playbook_id}/files/{file_id}/delete")
@@ -633,13 +633,13 @@ async def delete_playbook_file(
     playbook = db.get(AnsiblePlaybook, playbook_id)
     file = db.get(AnsiblePlaybookFile, file_id)
     if project is None or playbook is None or file is None or playbook.project_id != project.id or file.playbook_id != playbook.id:
-        return RedirectResponse(f"/projects/{project_id}?error=missing", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=missing", status_code=303)
     if not _can_edit_project(current_user, project):
-        return RedirectResponse(f"/projects/{project_id}/playbooks/{playbook_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}/playbooks/{playbook_id}?error=forbidden", status_code=303)
 
     db.delete(file)
     db.commit()
-    return RedirectResponse(f"/projects/{project_id}/playbooks/{playbook_id}", status_code=303)
+    return RedirectResponse(f"/dashboard/projects/{project_id}/playbooks/{playbook_id}", status_code=303)
 
 
 @router.get("/{project_id}/playbooks/{playbook_id}")
@@ -653,9 +653,9 @@ async def playbook_detail(
     project = _get_project(db, project_id)
     playbook = db.get(AnsiblePlaybook, playbook_id)
     if project is None or playbook is None or playbook.project_id != project.id:
-        return RedirectResponse(f"/projects/{project_id}?error=missing", status_code=303)
+        return RedirectResponse(f"/dashboard/projects/{project_id}?error=missing", status_code=303)
     if not _can_view_project(current_user, project):
-        return RedirectResponse("/projects/?error=forbidden", status_code=303)
+        return RedirectResponse("/dashboard/projects/?error=forbidden", status_code=303)
 
     return templates.TemplateResponse(
         request,

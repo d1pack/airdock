@@ -4,7 +4,7 @@
 
 {% block content %}
   <header class="page-header page-header--stacked">
-    <a class="back-link" href="/tasks/">
+    <a class="back-link" href="/dashboard/tasks/">
       <i data-lucide="arrow-left" aria-hidden="true"></i>
       К задачам
     </a>
@@ -26,7 +26,7 @@
         </div>
       </div>
 
-      <form class="form form--soft" method="post" action="/tasks/{{ task.id }}">
+      <form class="form form--soft" method="post" action="/dashboard/tasks/{{ task.id }}">
         <label>
           Название
           <input name="title" required value="{{ task.title }}" {% if not can_edit_task %}readonly{% endif %}>
@@ -68,7 +68,7 @@
       {% if can_edit_task %}
         <div class="task-detail-actions">
           {% if task.status not in ["running", "queued", "cancel_requested"] %}
-            <form class="task-detail-run" method="post" action="/tasks/{{ task.id }}/enqueue">
+            <form class="task-detail-run" method="post" action="/dashboard/tasks/{{ task.id }}/enqueue">
               <button class="button button--primary" type="submit">
                 <i data-lucide="play" aria-hidden="true"></i>
                 Поставить в очередь
@@ -76,7 +76,7 @@
             </form>
           {% endif %}
           {% if task.status in ["queued", "running", "scheduled", "cancel_requested"] %}
-            <form class="task-detail-run" method="post" action="/tasks/{{ task.id }}/stop">
+            <form class="task-detail-run" method="post" action="/dashboard/tasks/{{ task.id }}/stop">
               <button class="button button--secondary" type="submit">
                 <i data-lucide="square" aria-hidden="true"></i>
                 Остановить задачу
@@ -106,7 +106,7 @@
           <span class="task-countdown" data-task-countdown="{{ task.scheduled_at.isoformat() }}Z">Расчёт таймера...</span>
         {% endif %}
         {% if task.project %}<span>Проект: {{ task.project.name }}</span>{% endif %}
-        {% if task.pipeline %}<span>Пайплайн: <a href="/pipelines/{{ task.pipeline.id }}">{{ task.pipeline.name }}</a></span>{% endif %}
+        {% if task.pipeline %}<span>Пайплайн: <a href="/dashboard/pipelines/{{ task.pipeline.id }}">{{ task.pipeline.name }}</a></span>{% endif %}
       </div>
       {% if task.error or task.result %}
         <section class="cmd-log cmd-log--{{ task.status_tone }}">

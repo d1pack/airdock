@@ -44,7 +44,7 @@ async def create_user(
     current_user: User = Depends(get_current_user),
 ):
     if not can_manage(current_user):
-        return RedirectResponse("/users/?error=forbidden", status_code=303)
+        return RedirectResponse("/dashboard/users/?error=forbidden", status_code=303)
 
     db.add(
         User(
@@ -58,6 +58,6 @@ async def create_user(
         db.commit()
     except IntegrityError:
         db.rollback()
-        return RedirectResponse("/users/?error=duplicate", status_code=303)
+        return RedirectResponse("/dashboard/users/?error=duplicate", status_code=303)
 
-    return RedirectResponse("/users/", status_code=303)
+    return RedirectResponse("/dashboard/users/", status_code=303)

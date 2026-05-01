@@ -36,7 +36,7 @@ async def activity_log(
     db: Session = Depends(get_db),
 ):
     if not can_manage(current_user):
-        return RedirectResponse("/projects/?error=forbidden", status_code=303)
+        return RedirectResponse("/dashboard/projects/?error=forbidden", status_code=303)
 
     events = db.scalars(select(ActivityLog).order_by(ActivityLog.created_at.desc()).limit(120)).all()
     return templates.TemplateResponse(

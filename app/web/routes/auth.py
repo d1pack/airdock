@@ -28,10 +28,10 @@ async def login(
 ):
     user = authenticate_user(db, username.strip(), password)
     if user is None:
-        return RedirectResponse("/login?error=invalid", status_code=303)
+        return RedirectResponse("/dashboard/login?error=invalid", status_code=303)
 
     access_token, refresh_token = create_auth_pair(db, user)
-    response = RedirectResponse("/projects/", status_code=303)
+    response = RedirectResponse("/dashboard/", status_code=303)
     _set_auth_cookies(response, access_token, refresh_token)
     return response
 
@@ -40,16 +40,16 @@ async def login(
 async def refresh(request: Request, db: Session = Depends(get_db)):
     refresh_token = request.cookies.get("airdock_refresh")
     if not refresh_token:
-        return RedirectResponse("/login?error=expired", status_code=303)
+        return RedirectResponse("/dashboard/login?error=expired", status_code=303)
 
     token_pair = refresh_auth_pair(db, refresh_token)
     if token_pair is None:
-        response = RedirectResponse("/login?error=expired", status_code=303)
+        response = RedirectResponse("/dashboard/login?error=expired", status_code=303)
         _clear_auth_cookies(response)
         return response
 
     access_token, new_refresh_token, _user = token_pair
-    response = RedirectResponse("/projects/", status_code=303)
+    response = RedirectResponse("/dashboard/", status_code=303)
     _set_auth_cookies(response, access_token, new_refresh_token)
     return response
 
@@ -57,7 +57,7 @@ async def refresh(request: Request, db: Session = Depends(get_db)):
 @router.post("/logout")
 async def logout(request: Request, db: Session = Depends(get_db)):
     revoke_refresh_token(db, request.cookies.get("airdock_refresh"))
-    response = RedirectResponse("/login", status_code=303)
+    response = RedirectResponse("/dashboard/login", status_code=303)
     _clear_auth_cookies(response)
     return response
 

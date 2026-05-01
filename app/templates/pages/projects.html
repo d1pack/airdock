@@ -22,7 +22,7 @@
   <section class="management-grid">
     <div class="project-grid">
       {% for project in projects %}
-        <a class="project-card project-card--{{ project.status }}" href="/projects/{{ project.id }}">
+        <a class="project-card project-card--{{ project.status }}" href="/dashboard/projects/{{ project.id }}">
           <div class="project-card__icon">{{ project.icon }}</div>
           <div class="project-card__body">
             <div class="project-card__header">
@@ -54,7 +54,7 @@
         </div>
       </div>
 
-      <form class="form form--soft" method="post" action="/projects/">
+      <form class="form form--soft" method="post" action="/dashboard/projects/">
         <label>
           Название проекта
           <input name="name" required placeholder="Production API">

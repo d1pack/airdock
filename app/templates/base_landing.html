@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}AirDock{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/landing.css">
+    <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script defer src="/static/js/app.js"></script>
+  </head>
+  <body class="landing-body">
+    <div class="landing-shell">
+      <header class="landing-header">
+        <a class="brand brand--landing" href="/">
+          <span class="brand__mark brand__mark--logo">AD</span>
+          <span>
+            <strong>AirDock</strong>
+            <small>Рабочее пространство для запуска сервисов</small>
+          </span>
+        </a>
+
+        <nav class="landing-nav" aria-label="Навигация по странице">
+          <a href="#features">Возможности</a>
+          <a href="#how">Как работает</a>
+          <a href="#price">Цена</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+
+        <a class="button button--primary landing-header__cta" href="/dashboard/login">Начать сейчас</a>
+      </header>
+
+      <main class="landing-main">
+        {% block content %}{% endblock %}
+      </main>
+
+      <footer class="landing-footer">
+        <span>AirDock 2026</span>
+        <span>Надёжный инструмент для запуска и контроля сервисов.</span>
+      </footer>
+    </div>
+  </body>
+</html>
