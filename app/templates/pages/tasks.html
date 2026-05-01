@@ -29,7 +29,7 @@
         </div>
       </div>
       {% if playbooks %}
-        <form class="form form--soft task-create-form" method="post" action="/tasks/">
+        <form class="form form--soft task-create-form" method="post" action="/dashboard/tasks/">
           <label>
             Название
             <input name="title" placeholder="Запуск деплоя">
@@ -73,7 +73,7 @@
       <div class="panel__header">
         <h2>Фильтры</h2>
       </div>
-      <form class="task-filter-form" method="get" action="/tasks/">
+      <form class="task-filter-form" method="get" action="/dashboard/tasks/">
         <label>
           Статус
           <select name="status">
@@ -96,7 +96,7 @@
             <i data-lucide="filter" aria-hidden="true"></i>
             Применить
           </button>
-          <a class="button button--secondary button--compact" href="/tasks/">
+          <a class="button button--secondary button--compact" href="/dashboard/tasks/">
             <i data-lucide="rotate-ccw" aria-hidden="true"></i>
             Сбросить
           </a>
@@ -116,7 +116,7 @@
       <section class="task-list">
         {% for task in tasks %}
           <article class="task-card task-card--{{ task.status }}">
-            <a class="task-card__link" href="/tasks/{{ task.id }}">
+            <a class="task-card__link" href="/dashboard/tasks/{{ task.id }}">
               <span class="task-card__icon">
                 {% if task.task_type == "metrics" %}
                   <i data-lucide="activity" aria-hidden="true"></i>
@@ -146,7 +146,7 @@
               </span>
             </a>
             {% if task.status in ["queued", "running", "scheduled", "cancel_requested"] and (can_manage_tasks or task.owner_id == current_user.id) %}
-              <form class="task-card__stop" method="post" action="/tasks/{{ task.id }}/stop">
+              <form class="task-card__stop" method="post" action="/dashboard/tasks/{{ task.id }}/stop">
                 <button class="container-action container-action--delete" type="submit" title="Остановить задачу">
                   <i data-lucide="square" aria-hidden="true"></i>
                 </button>

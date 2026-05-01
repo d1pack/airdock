@@ -4,7 +4,7 @@
 
 {% block content %}
   <header class="page-header page-header--stacked">
-    <a class="back-link" href="/pipelines/">
+    <a class="back-link" href="/dashboard/pipelines/">
       <i data-lucide="arrow-left" aria-hidden="true"></i>
       К пайплайнам
     </a>
@@ -34,12 +34,12 @@
       </div>
       <div class="pipeline-run-panel__actions">
         {% if run_task %}
-          <a class="button button--secondary button--compact" href="/tasks/{{ run_task.id }}">
+          <a class="button button--secondary button--compact" href="/dashboard/tasks/{{ run_task.id }}">
             <i data-lucide="terminal-square" aria-hidden="true"></i>
             Открыть задачу
           </a>
         {% endif %}
-        <form method="post" action="/pipelines/{{ pipeline.id }}/run">
+        <form method="post" action="/dashboard/pipelines/{{ pipeline.id }}/run">
           <button class="button button--primary button--compact" type="submit" {% if not pipeline.steps %}disabled{% endif %}>
             <i data-lucide="play" aria-hidden="true"></i>
             Запустить
@@ -54,7 +54,7 @@
   {% elif not playbooks %}
     <section class="panel empty-panel">В доступных проектах пока нет playbook-ов.</section>
   {% else %}
-    <form class="pipeline-builder" method="post" action="{{ '/pipelines/' ~ pipeline.id if pipeline else '/pipelines/' }}" data-pipeline-builder>
+    <form class="pipeline-builder" method="post" action="{{ '/dashboard/pipelines/' ~ pipeline.id if pipeline else '/dashboard/pipelines/' }}" data-pipeline-builder>
       <article class="panel form-panel pipeline-builder__settings">
         <div class="form-panel__header">
           <div class="form-panel__icon">

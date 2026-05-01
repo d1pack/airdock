@@ -1,0 +1,341 @@
+{% extends "base_landing.html" %}
+
+{% block title %}AirDock — Единый центр запуска, контроля и масштабирования сервисов{% endblock %}
+
+{% block content %}
+  <!-- Hero Section -->
+  <section class="hero section">
+    <div class="hero-copy">
+      <p>AirDock</p>
+      <h1>Единый центр запуска, контроля и масштабирования сервисов.</h1>
+      <p class="hero-text">AirDock помогает командам быстро запускать цифровые проекты, внедрять предсказуемые процессы и контролировать инфраструктуру в едином рабочем пространстве.</p>
+
+      <div class="hero-actions">
+        <a class="button button--primary" href="/dashboard/login">Попробовать Airdock →</a>
+        <a class="button button--secondary" href="#how">Смотреть демо →</a>
+      </div>
+
+      <div class="hero-badges">
+        <span>Готово к коммерческому использованию</span>
+        <span>Стабильность 99.95%</span>
+        <span>14 дней возврата</span>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="preview-panel">
+        <div class="preview-panel__top">
+          <div>
+            <span class="preview-label">Production pipeline</span>
+            <h2>Live</h2>
+          </div>
+          <span class="status-pill">Live</span>
+        </div>
+
+        <div class="preview-chart"></div>
+
+        <div class="preview-summary">
+          <div class="preview-summary__item">
+            <strong>12x</strong>
+            <span>быстрее</span>
+          </div>
+          <div class="preview-summary__item">
+            <strong>99.95%</strong>
+            <span>uptime</span>
+          </div>
+          <div class="preview-summary__item">
+            <strong>1 панель</strong>
+            <span>для команды</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-panel preview-panel--side">
+        <div class="preview-line">
+          <span>Автоматизация</span>
+          <strong>По расписанию</strong>
+        </div>
+        <div class="preview-line">
+          <span>Статус</span>
+          <strong>✓ Online</strong>
+        </div>
+        <div class="preview-line">
+          <span>Доступ</span>
+          <strong>Команда 5 чел</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust Stats -->
+  <section class="section trust-block">
+    <div class="trust-grid">
+      <article class="trust-card">
+        <strong>99.95%</strong>
+        <span>Надежность, на которую можно полагаться — ваша инфраструктура работает всегда</span>
+      </article>
+      <article class="trust-card">
+        <strong>в 3.2x</strong>
+        <span>Сокращение затрат на запуск за счёт преднастроенных процессов и автоматизации</span>
+      </article>
+      <article class="trust-card">
+        <strong>до 40%</strong>
+        <span>Автоматизация рутинных операций для больше внимания к продукту</span>
+      </article>
+      <article class="trust-card">
+        <strong>одна панель</strong>
+        <span>Прозрачность, контроль и управление — всё в одном месте для команды</span>
+      </article>
+    </div>
+  </section>
+
+  <!-- Problems Section -->
+  <section id="features" class="section feature-grid">
+    <h2 style="grid-column: 1 / -1; font-size: 36px; font-weight: 800; text-align: center; margin-bottom: 40px; margin-top: -20px;">Проблемы, которые мы решаем</h2>
+    
+    <article class="feature-card">
+      <h3>Разрозненные инструменты</h3>
+      <p>Одна панель для сервисов, контроля и автоматизации. Ничего лишнего, только то, что нужно для запуска.</p>
+    </article>
+    <article class="feature-card">
+      <h3>Сложности с процессами</h3>
+      <p>Рутинные задачи запуска и проверки зафиксированы в сценариях. Команда знает, что делать и когда.</p>
+    </article>
+    <article class="feature-card">
+      <h3>Невидимая инфраструктура</h3>
+      <p>Все статусы, ошибки и уведомления в одном месте. Команда видит, что происходит, и может действовать.</p>
+    </article>
+    <article class="feature-card">
+      <h3>Ручные операции</h3>
+      <p>Автоматизируйте повторяемые процессы. Система выполнит проверки, развертывание и откат без помощи.</p>
+    </article>
+  </section>
+
+  <!-- Capabilities Section -->
+  <section class="section">
+    <h2 style="font-size: 36px; font-weight: 800; text-align: center; margin-bottom: 48px;">Возможности AirDock</h2>
+    
+    <div class="who-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <article class="who-card">
+        <strong>Автоматизация</strong>
+        <p>Запускайте сценарии по расписанию или вручную. Система проверит каждый этап и выполнит откат, если потребуется.</p>
+      </article>
+      <article class="who-card">
+        <strong>Мониторинг в реальном времени</strong>
+        <p>Наблюдайте за статусом каждого сервиса. Получайте уведомления о проблемах и статусе инфраструктуры.</p>
+      </article>
+      <article class="who-card">
+        <strong>Доступ и роли команды</strong>
+        <p>Управляйте просмотром и доступом к операциям. Каждый член команды видит только то, что ему нужно.</p>
+      </article>
+
+      <article class="who-card">
+        <strong>Управление развертыванием</strong>
+        <p>Docker, Kubernetes, облако — управляйте развертыванием в любом окружении из одной панели.</p>
+      </article>
+      <article class="who-card">
+        <strong>Видимость операций</strong>
+        <p>Логи, статусы, ошибки — полная история каждого запуска за последние месяцы.</p>
+      </article>
+      <article class="who-card">
+        <strong>Быстрые решения</strong>
+        <p>Обнаружьте проблемы, откатитесь или перезапустите за секунды. Время восстановления — минимально.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how" class="section split-block">
+    <div class="split-copy">
+      <h2>Как это работает</h2>
+      <p>Подключите окружение, настройте сценарии запуска, запустите и наблюдайте. Никаких сложностей.</p>
+
+      <div class="step-list">
+        <div class="step-card">
+          <strong>1</strong>
+          <div>
+            <h3>Подключение серверов</h3>
+            <p>Свяжите сервисы, узлы и репозитории через единую панель управления.</p>
+          </div>
+        </div>
+        <div class="step-card">
+          <strong>2</strong>
+          <div>
+            <h3>Создание процессов</h3>
+            <p>Соберите этапы запуска, проверки и отката в один рабочий процесс для команды.</p>
+          </div>
+        </div>
+        <div class="step-card">
+          <strong>3</strong>
+          <div>
+            <h3>Запуск и контроль</h3>
+            <p>Контролируйте результат в реальном времени и уточняйте сценарии без лишних операций.</p>
+          </div>
+        </div>
+        <div class="step-card">
+          <strong>4</strong>
+          <div>
+            <h3>Масштабирование</h3>
+            <p>Добавляйте новые сервисы, команды и процессы без переконфигурации всей системы.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="split-preview">
+      <div class="preview-shell">
+        <div class="preview-shell__header">
+          <span>Status</span>
+          <strong>Infrastructure Ready</strong>
+        </div>
+        <div class="status-grid">
+          <div class="status-card">
+            <strong>Build</strong>
+            <span>Done</span>
+          </div>
+          <div class="status-card">
+            <strong>Deploy</strong>
+            <span>Active</span>
+          </div>
+          <div class="status-card">
+            <strong>Tests</strong>
+            <span>Passed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- For Whom Section -->
+  <section class="section who-block">
+    <h2>Для кого AirDock</h2>
+    <div class="who-grid">
+      <article class="who-card">
+        <strong>Стартапы</strong>
+        <p>Которые хотят запускать проекты быстро, без сложной инфраструктуры и команды DevOps слишком рано.</p>
+      </article>
+      <article class="who-card">
+        <strong>SaaS компании</strong>
+        <p>Которые нуждаются в понятной панели управления и хотят автоматизировать запуск новых окружений.</p>
+      </article>
+      <article class="who-card">
+        <strong>Технические команды</strong>
+        <p>Которые ценят скорость, хотят избежать ручных ошибок и хотят видеть, что происходит с инфраструктурой.</p>
+      </article>
+      <article class="who-card">
+        <strong>Платформенные продукты</strong>
+        <p>Которые строят рабочие пространства для своих команд и нуждаются в управлении deployment'ой.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section id="price" class="section pricing-section">
+    <div class="pricing-card">
+      <span class="pricing-tag">AirDock Pro</span>
+      <h2>$79 / месяц</h2>
+      <p class="pricing-note">Ежемесячно. Оплата за полный год сохраняет доступ на текущем уровне.</p>
+      
+      <ul class="pricing-list">
+        <li>Полный доступ к панели запуска</li>
+        <li>До 10 пользователей в команде</li>
+        <li>Мониторинг в реальном времени</li>
+        <li>Автоматизация и запуск по расписанию</li>
+        <li>Логи за последние 30 дней</li>
+        <li>Приоритетная поддержка</li>
+        <li>14 дней денег назад</li>
+      </ul>
+
+      <a class="button button--primary" href="/dashboard/login" style="width: 100%; text-align: center; justify-content: center;">Начать сейчас</a>
+    </div>
+
+    <div class="pricing-copy">
+      <h3>Lifetime план</h3>
+      <h2 style="font-size: 36px; margin-bottom: 16px;">$199 один раз</h2>
+      <p style="margin-bottom: 24px;">Пожизненный доступ. Все обновления и возможности включены.</p>
+
+      <div class="pricing-benefits">
+        <div>
+          <strong>✓ Все возможности Pro</strong>
+          <span>Полный доступ к панели, автоматизация, мониторинг, логи.</span>
+        </div>
+        <div>
+          <strong>✓ Неограниченные пользователи</strong>
+          <span>Добавляйте столько членов команды, сколько нужно. Без дополнительной платы.</span>
+        </div>
+        <div>
+          <strong>✓ Облачное хранилище логов</strong>
+          <span>Сохраняйте логи того, что происходило, столько, сколько нужно.</span>
+        </div>
+        <div>
+          <strong>✓ Приоритетная поддержка</strong>
+          <span>Личный менеджер при возникновении вопросов, помощь при внедрении.</span>
+        </div>
+      </div>
+
+      <a class="button button--primary" href="/dashboard/login" style="margin-top: 32px;">Выбрать Lifetime →</a>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="section">
+    <h2 style="font-size: 36px; font-weight: 800; text-align: center; margin-bottom: 48px;">Результаты наших клиентов</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 40px;">
+      <div class="testimonial-card">
+        <p>«С AirDock мы сократили время запуска проектов с 2 недель до 2 дней. Команда перестала тратить время на ручные операции.»</p>
+        <strong>— Мария Кулешова, CTO GitHawk</strong>
+      </div>
+
+      <div class="testimonial-card">
+        <p>«Ищем решение, которое упростит управление инфраструктурой. AirDock оказалось именно тем, что нужно. Очень просто и понятно.»</p>
+        <strong>— Алексей Федоров, CEO CloudBox</strong>
+      </div>
+
+      <div class="testimonial-card">
+        <p>«Главное преимущество — одна панель для всего. Раньше нужно было переходить между 5 инструментами. Теперь все в одном месте.»</p>
+        <strong>— Анна Рахимова, Product Lead AI Labs</strong>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="section faq-section">
+    <h2>Часто задаваемые вопросы</h2>
+    <div class="faq-grid">
+      <article class="faq-item">
+        <h3>Моне интегрировать со своей инфраструктурой?</h3>
+        <p>Да, AirDock работает с Docker, Kubernetes, облако (AWS, GCP, Azure) и локальными серверами. Мы поддерживаем большинство инструментов.</p>
+      </article>
+      <article class="faq-item">
+        <h3>Какая техподдержка?</h3>
+        <p>Бесплатная поддержка по email и чату. Lifetime план включает приоритетной поддержку и консультации при внедрении.</p>
+      </article>
+      <article class="faq-item">
+        <h3>Как быстро начать?</h3>
+        <p>Подключить окружение можно за 10 минут. Первый запуск настраивается за 30 минут. Поддержка поможет, если нужна помощь.</p>
+      </article>
+      <article class="faq-item">
+        <h3>Есть ли гарантия возврата?</h3>
+        <p>Да, 14 дней денег назад, если AirDock не подошел. Нет вопросов, просто полный возврат средств.</p>
+      </article>
+      <article class="faq-item">
+        <h3>Как защищены данные?</h3>
+        <p>Все данные зашифрованы в пути и на серверах. Мы используем стандарты HTTPS и базовые практики безопасности инфраструктуры.</p>
+      </article>
+      <article class="faq-item">
+        <h3>Можно ли использовать на своих серверах?</h3>
+        <p>На данный момент AirDock доступен только как облачная версия. Мы изучаем возможность self-hosted версии.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="final-cta">
+    <div>
+      <h2>Готовы запустить ваш продукт быстрее?</h2>
+      <p>Начните управлять сервисами из одной панели. Никаких разрозненных инструментов, ничего лишнего.</p>
+    </div>
+    <a class="button button--primary" href="/dashboard/login">Попробовать AirDock бесплатно</a>
+  </section>
+{% endblock %}

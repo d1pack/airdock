@@ -4,7 +4,7 @@
 
 {% block content %}
   <header class="page-header page-header--stacked">
-    <a class="back-link" href="/projects/{{ project.id }}">
+    <a class="back-link" href="/dashboard/projects/{{ project.id }}">
       <i data-lucide="arrow-left" aria-hidden="true"></i>
       К проекту
     </a>
@@ -37,7 +37,7 @@
           <p>Название и описание видны в списке проектов.</p>
         </div>
       </div>
-      <form class="form form--soft" method="post" action="/projects/{{ project.id }}/settings">
+      <form class="form form--soft" method="post" action="/dashboard/projects/{{ project.id }}/settings">
         <label>
           Название проекта
           <input name="name" required value="{{ project.name }}">
@@ -68,7 +68,7 @@
           <span>Нет пользователей</span>
         {% endfor %}
       </div>
-      <form class="inline-form" method="post" action="/projects/{{ project.id }}/users">
+      <form class="inline-form" method="post" action="/dashboard/projects/{{ project.id }}/users">
         <input type="hidden" name="next" value="settings">
         <select name="user_id" required>
           {% for user in users %}
@@ -112,7 +112,7 @@
         {% endfor %}
       </div>
       {% if nodes %}
-        <form class="inline-form" method="post" action="/projects/{{ project.id }}/nodes">
+        <form class="inline-form" method="post" action="/dashboard/projects/{{ project.id }}/nodes">
           <input type="hidden" name="next" value="settings">
           <select name="node_id" required>
             {% for node in nodes %}
@@ -130,7 +130,7 @@
           <i data-lucide="circle-plus" aria-hidden="true"></i>
           Добавить нового курьера
         </summary>
-        <form class="form form--soft" method="post" action="/projects/{{ project.id }}/nodes/create">
+        <form class="form form--soft" method="post" action="/dashboard/projects/{{ project.id }}/nodes/create">
           <input type="hidden" name="next" value="settings">
           <label>
             Имя курьера

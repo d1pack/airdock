@@ -9,7 +9,7 @@
       <h1>Пайплайны</h1>
       <p class="page-header__description">Управляйте автоматизированными сценариями деплоя и инфраструктуры</p>
     </div>
-    <a class="button button--primary" href="/pipelines/new" aria-label="Создать новый пайплайн">
+    <a class="button button--primary" href="/dashboard/pipelines/new" aria-label="Создать новый пайплайн">
       <i data-lucide="circle-plus" aria-hidden="true"></i>
       Создать пайплайн
     </a>
@@ -25,7 +25,7 @@
     {% for pipeline in pipelines %}
       {% set latest_task = pipeline_tasks.get(pipeline.id) if pipeline_tasks is defined else None %}
       <article class="pipeline-card">
-        <a class="pipeline-card__link" href="/pipelines/{{ pipeline.id }}">
+        <a class="pipeline-card__link" href="/dashboard/pipelines/{{ pipeline.id }}">
           <span class="pipeline-card__icon">
             <i data-lucide="workflow" aria-hidden="true"></i>
           </span>
@@ -61,7 +61,7 @@
           <span class="task-status task-status--{{ latest_task.status_tone if latest_task else 'neutral' }}">
             <i></i>{{ latest_task.status_label if latest_task else "Еще не запускался" }}
           </span>
-          <form method="post" action="/pipelines/{{ pipeline.id }}/run">
+          <form method="post" action="/dashboard/pipelines/{{ pipeline.id }}/run">
             <button class="button button--primary button--compact" type="submit" {% if not pipeline.steps %}disabled{% endif %} aria-label="Запустить пайплайн {{ pipeline.name }}">
               <i data-lucide="play" aria-hidden="true"></i>
               Запустить

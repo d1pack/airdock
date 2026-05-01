@@ -4,7 +4,7 @@
 
 {% block content %}
   <header class="page-header page-header--stacked">
-    <a class="back-link" href="/projects/{{ project.id }}">
+    <a class="back-link" href="/dashboard/projects/{{ project.id }}">
       <i data-lucide="arrow-left" aria-hidden="true"></i>
       К проекту {{ project.name }}
     </a>
@@ -34,7 +34,7 @@
         </div>
       </div>
 
-      <form class="form form--soft playbook-editor-form" method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/update">
+      <form class="form form--soft playbook-editor-form" method="post" action="/dashboard/projects/{{ project.id }}/playbooks/{{ playbook.id }}/update">
         <div class="playbook-editor-meta">
           <label class="playbook-editor-meta__name">
             Название
@@ -82,10 +82,10 @@
         {% endif %}
       </form>
       {% if can_edit_project %}
-        <form id="run-playbook-form" method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/run">
+        <form id="run-playbook-form" method="post" action="/dashboard/projects/{{ project.id }}/playbooks/{{ playbook.id }}/run">
           <input type="hidden" name="next" value="playbook">
         </form>
-        <form id="clone-playbook-form" method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/clone"></form>
+        <form id="clone-playbook-form" method="post" action="/dashboard/projects/{{ project.id }}/playbooks/{{ playbook.id }}/clone"></form>
       {% endif %}
     </article>
 
@@ -116,7 +116,7 @@
                   <i data-lucide="chevron-down" aria-hidden="true"></i>
                 </span>
                 {% if can_edit_project %}
-                  <form method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/files/{{ file.id }}/delete" data-confirm="Удалить файл {{ file.path }}?">
+                  <form method="post" action="/dashboard/projects/{{ project.id }}/playbooks/{{ playbook.id }}/files/{{ file.id }}/delete" data-confirm="Удалить файл {{ file.path }}?">
                     <button class="container-action container-action--delete" type="submit" title="Удалить файл">
                       <i data-lucide="trash-2" aria-hidden="true"></i>
                     </button>
@@ -125,7 +125,7 @@
               </div>
             </div>
             <div class="playbook-file-card__menu">
-              <form class="form form--soft playbook-file-form" method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/files/{{ file.id }}/update">
+              <form class="form form--soft playbook-file-form" method="post" action="/dashboard/projects/{{ project.id }}/playbooks/{{ playbook.id }}/files/{{ file.id }}/update">
                 <label>
                   Путь файла
                   <input name="path" required value="{{ file.path }}" placeholder="templates/app.env" {% if not can_edit_project %}readonly{% endif %}>
@@ -154,7 +154,7 @@
       </div>
 
       {% if can_edit_project %}
-        <form class="form form--soft playbook-file-create" method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/files">
+        <form class="form form--soft playbook-file-create" method="post" action="/dashboard/projects/{{ project.id }}/playbooks/{{ playbook.id }}/files">
           <div class="playbook-file-create__header">
             <div class="form-panel__icon">
               <i data-lucide="file-plus-2" aria-hidden="true"></i>

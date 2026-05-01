@@ -4,7 +4,7 @@
 
 {% block content %}
   <header class="page-header page-header--stacked">
-    <a class="back-link" href="/projects/">
+    <a class="back-link" href="/dashboard/projects/">
       <i data-lucide="arrow-left" aria-hidden="true"></i>
       К проектам
     </a>
@@ -67,7 +67,7 @@
         </div>
         {% if can_edit_project %}
           <div class="panel-actions project-hero__actions">
-            <a class="button button--secondary button--compact" href="/projects/{{ project.id }}/settings">
+            <a class="button button--secondary button--compact" href="/dashboard/projects/{{ project.id }}/settings">
               <i data-lucide="settings-2" aria-hidden="true"></i>
               Настройки
             </a>
@@ -76,7 +76,7 @@
       </div>
     </article>
 
-    <article class="panel monitoring-panel" data-project-metrics="/projects/{{ project.id }}/metrics">
+    <article class="panel monitoring-panel" data-project-metrics="/dashboard/projects/{{ project.id }}/metrics">
       <div class="panel__header monitoring-panel__header">
         <div>
           <p class="eyebrow">Мониторинг</p>
@@ -186,15 +186,15 @@
                 </span>
                 {% if can_edit_project %}
                   <div class="ansible-playbook-card__actions">
-                    <a class="container-action container-action--edit" href="/projects/{{ project.id }}/playbooks/{{ playbook.id }}" title="Редактировать">
+                    <a class="container-action container-action--edit" href="/dashboard/projects/{{ project.id }}/playbooks/{{ playbook.id }}" title="Редактировать">
                       <i data-lucide="pencil" aria-hidden="true"></i>
                     </a>
-                    <form method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/clone">
+                    <form method="post" action="/dashboard/projects/{{ project.id }}/playbooks/{{ playbook.id }}/clone">
                       <button class="container-action container-action--clone" type="submit" title="Клонировать">
                         <i data-lucide="copy-plus" aria-hidden="true"></i>
                       </button>
                     </form>
-                    <form method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/delete" data-confirm="Удалить playbook {{ playbook.name }}? Действие нельзя отменить.">
+                    <form method="post" action="/dashboard/projects/{{ project.id }}/playbooks/{{ playbook.id }}/delete" data-confirm="Удалить playbook {{ playbook.name }}? Действие нельзя отменить.">
                       <button class="container-action container-action--delete" type="submit" title="Удалить">
                         <i data-lucide="trash-2" aria-hidden="true"></i>
                       </button>
@@ -203,7 +203,7 @@
                 {% endif %}
               </div>
             </div>
-            <a class="ansible-playbook-card__link" href="/projects/{{ project.id }}/playbooks/{{ playbook.id }}">
+            <a class="ansible-playbook-card__link" href="/dashboard/projects/{{ project.id }}/playbooks/{{ playbook.id }}">
               <div class="docker-container-card__body">
                 <strong>{{ playbook.name }}</strong>
                 <span>{{ playbook.description or "Описание не указано" }}</span>
@@ -221,7 +221,7 @@
               </details>
             {% endif %}
             {% if can_edit_project %}
-              <form class="ansible-playbook-card__run" method="post" action="/projects/{{ project.id }}/playbooks/{{ playbook.id }}/run">
+              <form class="ansible-playbook-card__run" method="post" action="/dashboard/projects/{{ project.id }}/playbooks/{{ playbook.id }}/run">
                 <button class="button button--primary" type="submit">
                   <i data-lucide="play" aria-hidden="true"></i>
                   Запустить
@@ -255,7 +255,7 @@
             <i data-lucide="x" aria-hidden="true"></i>
           </button>
         </div>
-        <form class="form form--soft" method="post" action="/projects/{{ project.id }}/playbooks">
+        <form class="form form--soft" method="post" action="/dashboard/projects/{{ project.id }}/playbooks">
           <label>
             Название
             <input name="name" required placeholder="deploy-nginx">

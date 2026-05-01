@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Вход - Airdock</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}?v=neon-20260429-3">
+    <link rel="stylesheet" href="/static/css/app.css">
   </head>
   <body class="auth-body">
     <main class="auth-shell">
@@ -23,7 +23,7 @@
           <section class="alert">Сессия истекла. Войдите снова.</section>
         {% endif %}
 
-        <form class="form auth-form" method="post" action="/login">
+        <form class="form auth-form" method="post" action="/dashboard/login">
           <label>
             Имя пользователя
             <input name="username" required autocomplete="username" autofocus>

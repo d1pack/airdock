@@ -77,7 +77,7 @@ async def create_task(
         .options(selectinload(AnsiblePlaybook.project))
     )
     if playbook is None or not _can_use_playbook(current_user, playbook):
-        return RedirectResponse("/tasks/?error=missing_playbook", status_code=303)
+        return RedirectResponse("/dashboard/tasks/?error=missing_playbook", status_code=303)
 
     should_enqueue = action == "enqueue"
     scheduled_at = _parse_msk_datetime(scheduled_at_msk)
@@ -98,7 +98,7 @@ async def create_task(
     db.refresh(task)
     if should_enqueue:
         await enqueue_task_id(task.id)
-    return RedirectResponse(f"/tasks/{task.id}", status_code=303)
+    return RedirectResponse(f"/dashboard/tasks/{task.id}", status_code=303)
 
 
 @router.get("/{task_id}")
@@ -114,9 +114,9 @@ async def detail(
         .options(selectinload(Task.project), selectinload(Task.playbook), selectinload(Task.pipeline), selectinload(Task.owner))
     )
     if task is None:
-        return RedirectResponse("/tasks/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/tasks/?error=missing", status_code=303)
     if not _can_view_task(current_user, task):
-        return RedirectResponse("/tasks/?error=forbidden", status_code=303)
+        return RedirectResponse("/dashboard/tasks/?error=forbidden", status_code=303)
 
     playbooks = []
     if task.project_id:
@@ -150,9 +150,9 @@ async def update_task(
 ):
     task = db.get(Task, task_id)
     if task is None:
-        return RedirectResponse("/tasks/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/tasks/?error=missing", status_code=303)
     if not _can_edit_task(current_user, task):
-        return RedirectResponse(f"/tasks/{task_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/tasks/{task_id}?error=forbidden", status_code=303)
 
     task.title = title.strip() or task.title
     if task.task_type == "playbook":
@@ -172,7 +172,7 @@ async def update_task(
         if task.status == "scheduled":
             task.status = "draft"
     db.commit()
-    return RedirectResponse(f"/tasks/{task_id}", status_code=303)
+    return RedirectResponse(f"/dashboard/tasks/{task_id}", status_code=303)
 
 
 @router.post("/{task_id}/enqueue")
@@ -183,16 +183,16 @@ async def enqueue_task(
 ):
     task = db.get(Task, task_id)
     if task is None:
-        return RedirectResponse("/tasks/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/tasks/?error=missing", status_code=303)
     if not _can_edit_task(current_user, task):
-        return RedirectResponse(f"/tasks/{task_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/tasks/{task_id}?error=forbidden", status_code=303)
     task.status = "queued"
     task.error = ""
     task.scheduled_at = None
     task.queued_at = datetime.utcnow()
     db.commit()
     await enqueue_task_id(task.id)
-    return RedirectResponse(f"/tasks/{task_id}", status_code=303)
+    return RedirectResponse(f"/dashboard/tasks/{task_id}", status_code=303)
 
 
 @router.post("/{task_id}/stop")
@@ -203,11 +203,11 @@ async def stop_task(
 ):
     task = db.get(Task, task_id)
     if task is None:
-        return RedirectResponse("/tasks/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/tasks/?error=missing", status_code=303)
     if not _can_edit_task(current_user, task):
-        return RedirectResponse(f"/tasks/{task_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/tasks/{task_id}?error=forbidden", status_code=303)
     stop_task_id(task.id)
-    return RedirectResponse(f"/tasks/{task_id}", status_code=303)
+    return RedirectResponse(f"/dashboard/tasks/{task_id}", status_code=303)
 
 
 def _can_view_task(user: User, task: Task) -> bool:

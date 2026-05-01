@@ -34,6 +34,25 @@ def get_current_user(
     return user
 
 
+def get_optional_current_user(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> User | None:
+    token = None
+    if credentials is not None and credentials.scheme.lower() == "bearer":
+        token = credentials.credentials
+    if token is None:
+        token = request.cookies.get("airdock_access")
+
+    payload = decode_access_token(token) if token else None
+    username = payload.get("sub") if payload else None
+    if not isinstance(username, str):
+        return None
+
+    return db.scalar(select(User).where(User.username == username))
+
+
 def can_manage(current_user: User) -> bool:
     return current_user.user_type.can_manage
 

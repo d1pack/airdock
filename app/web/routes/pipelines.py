@@ -81,7 +81,7 @@ async def create_pipeline(
 ):
     selected_projects = _validated_projects(db, current_user, project_ids)
     if not selected_projects:
-        return RedirectResponse("/pipelines/new?error=missing_project", status_code=303)
+        return RedirectResponse("/dashboard/pipelines/new?error=missing_project", status_code=303)
 
     pipeline = Pipeline(
         project_id=selected_projects[0].id,
@@ -94,7 +94,7 @@ async def create_pipeline(
     _replace_projects(db, pipeline, selected_projects)
     _replace_steps(db, pipeline, playbook_ids, [project.id for project in selected_projects])
     db.commit()
-    return RedirectResponse(f"/pipelines/{pipeline.id}", status_code=303)
+    return RedirectResponse(f"/dashboard/pipelines/{pipeline.id}", status_code=303)
 
 
 @router.get("/{pipeline_id}")
@@ -106,9 +106,9 @@ async def detail(
 ):
     pipeline = _get_pipeline(db, pipeline_id)
     if pipeline is None:
-        return RedirectResponse("/pipelines/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/pipelines/?error=missing", status_code=303)
     if not _can_view_pipeline(current_user, pipeline):
-        return RedirectResponse("/pipelines/?error=forbidden", status_code=303)
+        return RedirectResponse("/dashboard/pipelines/?error=forbidden", status_code=303)
 
     projects = _editable_projects(db, current_user)
     playbooks = _playbooks_for_projects(db, projects)
@@ -142,12 +142,12 @@ async def update_pipeline(
 ):
     pipeline = _get_pipeline(db, pipeline_id)
     if pipeline is None:
-        return RedirectResponse("/pipelines/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/pipelines/?error=missing", status_code=303)
     if not _can_edit_pipeline(current_user, pipeline):
-        return RedirectResponse(f"/pipelines/{pipeline_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/pipelines/{pipeline_id}?error=forbidden", status_code=303)
     selected_projects = _validated_projects(db, current_user, project_ids)
     if not selected_projects:
-        return RedirectResponse(f"/pipelines/{pipeline_id}?error=missing_project", status_code=303)
+        return RedirectResponse(f"/dashboard/pipelines/{pipeline_id}?error=missing_project", status_code=303)
 
     pipeline.project_id = selected_projects[0].id
     pipeline.name = name.strip() or pipeline.name
@@ -156,7 +156,7 @@ async def update_pipeline(
     _replace_projects(db, pipeline, selected_projects)
     _replace_steps(db, pipeline, playbook_ids, [project.id for project in selected_projects])
     db.commit()
-    return RedirectResponse(f"/pipelines/{pipeline.id}", status_code=303)
+    return RedirectResponse(f"/dashboard/pipelines/{pipeline.id}", status_code=303)
 
 
 @router.post("/{pipeline_id}/run")
@@ -167,14 +167,14 @@ async def run_pipeline(
 ):
     pipeline = _get_pipeline(db, pipeline_id)
     if pipeline is None:
-        return RedirectResponse("/pipelines/?error=missing", status_code=303)
+        return RedirectResponse("/dashboard/pipelines/?error=missing", status_code=303)
     if not _can_edit_pipeline(current_user, pipeline):
-        return RedirectResponse(f"/pipelines/{pipeline_id}?error=forbidden", status_code=303)
+        return RedirectResponse(f"/dashboard/pipelines/{pipeline_id}?error=forbidden", status_code=303)
     if not pipeline.steps:
-        return RedirectResponse(f"/pipelines/{pipeline_id}?error=empty_pipeline", status_code=303)
+        return RedirectResponse(f"/dashboard/pipelines/{pipeline_id}?error=empty_pipeline", status_code=303)
     task = create_pipeline_task(db, pipeline=pipeline, user=current_user)
     await enqueue_task_id(task.id)
-    return RedirectResponse(f"/tasks/{task.id}", status_code=303)
+    return RedirectResponse(f"/dashboard/tasks/{task.id}", status_code=303)
 
 
 def _get_pipeline(db: Session, pipeline_id: int) -> Pipeline | None:
