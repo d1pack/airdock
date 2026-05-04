@@ -798,6 +798,9 @@ document.addEventListener("DOMContentLoaded", () => {
               <code>${escapeHtml(container.id || "-")}</code>
             </div>
             <div class="docker-container-card__actions">
+              <button class="container-action container-action--files" type="button" title="Файлы контейнера" data-container-files data-node-id="${escapeHtml(container.node_id)}" data-container-id="${escapeHtml(container.id)}" data-container-name="${escapeHtml(container.name)}" data-node-name="${escapeHtml(container.node_name)}" ${isRunning ? "" : "disabled"}>
+                <i data-lucide="folder-tree" aria-hidden="true"></i>
+              </button>
               <button class="container-action container-action--logs" type="button" title="Показать логи" data-container-logs data-node-id="${escapeHtml(container.node_id)}" data-container-id="${escapeHtml(container.id)}" data-container-name="${escapeHtml(container.name)}" data-node-name="${escapeHtml(container.node_name)}">
                 <i data-lucide="square-terminal" aria-hidden="true"></i>
               </button>
@@ -871,6 +874,183 @@ document.addEventListener("DOMContentLoaded", () => {
       }).join("");
       if (window.lucide) {
         window.lucide.createIcons({ nodes: imagesRail.querySelectorAll("[data-lucide]") });
+      }
+    };
+
+    const containerFilesDialog = document.getElementById("container-files-dialog");
+    const containerFilesState = {
+      nodeId: "",
+      containerId: "",
+      containerName: "",
+      nodeName: "",
+      path: "/",
+    };
+
+    const normalizeContainerPath = (path) => {
+      const value = String(path || "/").trim().replace(/\\/g, "/");
+      const parts = [];
+      for (const part of value.split("/")) {
+        if (!part || part === ".") {
+          continue;
+        }
+        if (part === "..") {
+          parts.pop();
+          continue;
+        }
+        parts.push(part);
+      }
+      return `/${parts.join("/")}`;
+    };
+
+    const containerParentPath = (path) => {
+      const normalized = normalizeContainerPath(path);
+      if (normalized === "/") {
+        return "/";
+      }
+      return normalized.slice(0, normalized.lastIndexOf("/")) || "/";
+    };
+
+    const setContainerFilesStatus = (message) => {
+      const status = containerFilesDialog?.querySelector("[data-container-files-status]");
+      if (status) {
+        status.textContent = message;
+      }
+    };
+
+    const renderContainerFilePayload = (payload) => {
+      const list = containerFilesDialog?.querySelector("[data-container-files-list]");
+      const output = containerFilesDialog?.querySelector("[data-container-files-output]");
+      const current = containerFilesDialog?.querySelector("[data-container-files-current]");
+      const pathInput = containerFilesDialog?.querySelector("[data-container-files-path]");
+      if (!list || !output) {
+        return;
+      }
+
+      containerFilesState.path = normalizeContainerPath(payload.path || containerFilesState.path);
+      if (pathInput) {
+        pathInput.value = containerFilesState.path;
+      }
+      if (current) {
+        current.textContent = containerFilesState.path;
+      }
+
+      if (payload.type === "directory") {
+        const entries = payload.entries || [];
+        output.textContent = "Выберите файл, чтобы посмотреть содержимое.";
+        list.innerHTML = entries.length
+          ? entries.map((entry) => {
+              const isDirectory = entry.type === "directory";
+              const icon = isDirectory ? "folder" : entry.type === "link" ? "link" : "file";
+              const size = isDirectory ? "папка" : entry.size === "-" ? "файл" : `${entry.size} B`;
+              const nextPath = normalizeContainerPath(`${containerFilesState.path}/${entry.name}`);
+              return `
+                <button class="container-files-entry container-files-entry--${escapeHtml(entry.type)}" type="button" data-container-file-path="${escapeHtml(nextPath)}">
+                  <i data-lucide="${icon}" aria-hidden="true"></i>
+                  <span>${escapeHtml(entry.name)}</span>
+                  <small>${escapeHtml(size)}</small>
+                </button>
+              `;
+            }).join("")
+          : `<div class="docker-container-empty">Папка пустая.</div>`;
+        setContainerFilesStatus(`${entries.length} элементов`);
+      } else {
+        const parentPath = containerParentPath(containerFilesState.path);
+        list.innerHTML = `
+          <button class="container-files-entry" type="button" data-container-file-path="${escapeHtml(parentPath)}">
+            <i data-lucide="arrow-up" aria-hidden="true"></i>
+            <span>Вернуться в папку</span>
+            <small>${escapeHtml(parentPath)}</small>
+          </button>
+        `;
+        output.textContent = payload.content || "Файл пустой.";
+        setContainerFilesStatus(payload.truncated ? "Показаны первые 256 KB" : `${payload.size || 0} B`);
+      }
+
+      if (window.lucide) {
+        window.lucide.createIcons({ nodes: containerFilesDialog.querySelectorAll("[data-lucide]") });
+      }
+    };
+
+    const loadContainerPath = async (path) => {
+      if (!projectId || !containerFilesState.nodeId || !containerFilesState.containerId) {
+        return;
+      }
+
+      const normalizedPath = normalizeContainerPath(path);
+      const output = containerFilesDialog?.querySelector("[data-container-files-output]");
+      if (output) {
+        output.textContent = "Загружаю содержимое контейнера...";
+      }
+      setContainerFilesStatus("Загрузка");
+
+      const response = await fetch(`/dashboard/projects/${projectId}/containers/${encodeURIComponent(containerFilesState.nodeId)}/${encodeURIComponent(containerFilesState.containerId)}/files?path=${encodeURIComponent(normalizedPath)}`, {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) {
+        let detail = `HTTP: ${response.status}`;
+        try {
+          const errorPayload = await response.json();
+          detail = errorPayload.detail || detail;
+        } catch (error) {
+          detail = `HTTP: ${response.status}`;
+        }
+        throw new Error(detail);
+      }
+      renderContainerFilePayload(await response.json());
+    };
+
+    const openContainerFiles = async (button) => {
+      if (!projectId || button.disabled) {
+        return;
+      }
+      containerFilesState.nodeId = button.getAttribute("data-node-id") || "";
+      containerFilesState.containerId = button.getAttribute("data-container-id") || "";
+      containerFilesState.containerName = button.getAttribute("data-container-name") || containerFilesState.containerId;
+      containerFilesState.nodeName = button.getAttribute("data-node-name") || "";
+      containerFilesState.path = "/";
+      if (!containerFilesState.nodeId || !containerFilesState.containerId || !containerFilesDialog) {
+        return;
+      }
+
+      const title = containerFilesDialog.querySelector("[data-container-files-title]");
+      const meta = containerFilesDialog.querySelector("[data-container-files-meta]");
+      const pathInput = containerFilesDialog.querySelector("[data-container-files-path]");
+      const list = containerFilesDialog.querySelector("[data-container-files-list]");
+      const output = containerFilesDialog.querySelector("[data-container-files-output]");
+      if (title) {
+        title.textContent = `Файлы ${containerFilesState.containerName}`;
+      }
+      if (meta) {
+        meta.textContent = `${containerFilesState.nodeName} · ${containerFilesState.containerId}`;
+      }
+      if (pathInput) {
+        pathInput.value = "/";
+      }
+      if (list) {
+        list.innerHTML = `<div class="docker-container-empty">Загрузка...</div>`;
+      }
+      if (output) {
+        output.textContent = "Загружаю / ...";
+      }
+      if (typeof containerFilesDialog.showModal === "function" && !containerFilesDialog.open) {
+        containerFilesDialog.showModal();
+      }
+
+      button.disabled = true;
+      try {
+        await loadContainerPath("/");
+      } catch (error) {
+        if (output) {
+          output.textContent = error.message || "Docker вернул ошибку при чтении файлов.";
+        }
+        setContainerFilesStatus("Ошибка");
+        showToast({
+          title: "Не удалось прочитать файлы контейнера",
+          message: error.message || "Docker вернул ошибку.",
+          href: "/docs/docker-access",
+        });
+      } finally {
+        button.disabled = false;
       }
     };
 
@@ -1010,7 +1190,68 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
+    containerFilesDialog?.querySelector("[data-container-files-list]")?.addEventListener("click", async (event) => {
+      const entry = event.target.closest("[data-container-file-path]");
+      if (!entry) {
+        return;
+      }
+      try {
+        await loadContainerPath(entry.getAttribute("data-container-file-path"));
+      } catch (error) {
+        const output = containerFilesDialog.querySelector("[data-container-files-output]");
+        if (output) {
+          output.textContent = error.message || "Docker вернул ошибку при чтении файлов.";
+        }
+        setContainerFilesStatus("Ошибка");
+      }
+    });
+
+    containerFilesDialog?.querySelector("[data-container-files-refresh]")?.addEventListener("click", async () => {
+      try {
+        await loadContainerPath(containerFilesDialog.querySelector("[data-container-files-path]")?.value || containerFilesState.path);
+      } catch (error) {
+        const output = containerFilesDialog.querySelector("[data-container-files-output]");
+        if (output) {
+          output.textContent = error.message || "Docker вернул ошибку при чтении файлов.";
+        }
+        setContainerFilesStatus("Ошибка");
+      }
+    });
+
+    containerFilesDialog?.querySelector("[data-container-files-up]")?.addEventListener("click", async () => {
+      try {
+        await loadContainerPath(containerParentPath(containerFilesDialog.querySelector("[data-container-files-path]")?.value || containerFilesState.path));
+      } catch (error) {
+        const output = containerFilesDialog.querySelector("[data-container-files-output]");
+        if (output) {
+          output.textContent = error.message || "Docker вернул ошибку при чтении файлов.";
+        }
+        setContainerFilesStatus("Ошибка");
+      }
+    });
+
+    containerFilesDialog?.querySelector("[data-container-files-path]")?.addEventListener("keydown", async (event) => {
+      if (event.key !== "Enter") {
+        return;
+      }
+      event.preventDefault();
+      try {
+        await loadContainerPath(event.currentTarget.value);
+      } catch (error) {
+        const output = containerFilesDialog.querySelector("[data-container-files-output]");
+        if (output) {
+          output.textContent = error.message || "Docker вернул ошибку при чтении файлов.";
+        }
+        setContainerFilesStatus("Ошибка");
+      }
+    });
+
     containersRail?.addEventListener("click", (event) => {
+      const filesButton = event.target.closest("[data-container-files]");
+      if (filesButton) {
+        openContainerFiles(filesButton);
+        return;
+      }
       const logsButton = event.target.closest("[data-container-logs]");
       if (logsButton) {
         openContainerLogs(logsButton);

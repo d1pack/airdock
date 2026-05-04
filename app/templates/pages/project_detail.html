@@ -311,4 +311,48 @@
       </div>
     </div>
   </dialog>
+
+  <dialog class="modal container-files-modal" id="container-files-dialog">
+    <div class="modal__panel container-logs-modal__panel container-files-modal__panel">
+      <div class="form-panel__header">
+        <div class="form-panel__icon">
+          <i data-lucide="folder-tree" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h2 data-container-files-title>Файлы контейнера</h2>
+          <p data-container-files-meta>Выберите контейнер в списке проекта.</p>
+        </div>
+        <button class="toast__close modal__close" type="button" data-close-dialog aria-label="Закрыть">
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="container-files-toolbar">
+        <button class="button button--secondary button--compact" type="button" data-container-files-up>
+          <i data-lucide="arrow-up" aria-hidden="true"></i>
+          Вверх
+        </button>
+        <label class="container-files-path">
+          <span>Путь</span>
+          <input data-container-files-path value="/" spellcheck="false">
+        </label>
+        <button class="button button--secondary button--compact" type="button" data-container-files-refresh>
+          <i data-lucide="refresh-cw" aria-hidden="true"></i>
+          Обновить
+        </button>
+      </div>
+      <div class="container-files-layout">
+        <section class="container-files-list" data-container-files-list>
+          <div class="docker-container-empty">Файлы пока не загружены.</div>
+        </section>
+        <section class="cmd-log container-logs-view container-files-view">
+          <div class="cmd-log__bar">
+            <span class="cmd-log__dots"><i></i><i></i><i></i></span>
+            <strong data-container-files-current>/</strong>
+            <small data-container-files-status>Ожидание</small>
+          </div>
+          <pre><code data-container-files-output>Выберите файл, чтобы посмотреть содержимое.</code></pre>
+        </section>
+      </div>
+    </div>
+  </dialog>
 {% endblock %}

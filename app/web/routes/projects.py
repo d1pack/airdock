@@ -18,6 +18,7 @@ from app.services.server_metrics import (
     MetricsUnavailableError,
     ServerMetrics,
     collect_node_containers,
+    collect_node_container_path,
     collect_node_container_logs,
     collect_node_images,
     collect_node_metrics,
@@ -338,6 +339,38 @@ async def container_logs(
             "logs": output or "Логи контейнера пустые.",
         }
     )
+
+
+@router.get("/{project_id}/containers/{node_id}/{container_id}/files")
+async def container_files(
+    project_id: int,
+    node_id: int,
+    container_id: str,
+    path: str = "/",
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project = _get_project(db, project_id)
+    node = db.get(Node, node_id)
+    if project is None or node is None or not _project_has_node(project, node.id):
+        return JSONResponse({"detail": "РЎРІСЏР·Р°РЅРЅС‹Р№ РєСѓСЂСЊРµСЂ РЅРµ РЅР°Р№РґРµРЅ."}, status_code=404)
+    if not _can_view_project(current_user, project):
+        return JSONResponse({"detail": "РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РїСЂР°РІ РґР»СЏ РїСЂРѕСЃРјРѕС‚СЂР° С„Р°Р№Р»РѕРІ РєРѕРЅС‚РµР№РЅРµСЂР°."}, status_code=403)
+
+    try:
+        payload = await run_in_threadpool(collect_node_container_path, node, container_id, path)
+    except MetricsUnavailableError as exc:
+        return JSONResponse({"detail": str(exc)}, status_code=502)
+
+    payload.update(
+        {
+            "container_id": container_id,
+            "node_id": str(node.id),
+            "node_name": node.name,
+            "server_ip": node.server_ip,
+        }
+    )
+    return JSONResponse(payload)
 
 
 @router.post("/{project_id}/images/{node_id}/{image_id}/delete")

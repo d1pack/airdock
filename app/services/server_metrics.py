@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+import posixpath
+import shlex
 from dataclasses import dataclass
 from io import StringIO
 
@@ -150,6 +152,19 @@ def collect_node_container_logs(node: Node, container_id: str, tail: int = 300) 
     return output.rstrip()
 
 
+def collect_node_container_path(node: Node, container_id: str, path: str = "/") -> dict:
+    if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}", container_id):
+        raise MetricsUnavailableError("Container id is invalid.")
+
+    safe_path = _normalize_container_path(path)
+    output = _run_node_command(node, _container_files_command(container_id, safe_path), timeout=20)
+    if "docker_unavailable=" in output:
+        raise MetricsUnavailableError(
+            "Docker РЅРµРґРѕСЃС‚СѓРїРµРЅ РґР»СЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ. Р”РѕР±Р°РІСЊС‚Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РІ РіСЂСѓРїРїСѓ docker РёР»Рё РЅР°СЃС‚СЂРѕР№С‚Рµ sudo Р±РµР· РїР°СЂРѕР»СЏ РґР»СЏ docker."
+        )
+    return _parse_container_path_output(output, safe_path)
+
+
 def run_node_image_delete(node: Node, image_id: str) -> str:
     if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,191}", image_id):
         raise MetricsUnavailableError("Image id is invalid.")
@@ -270,6 +285,77 @@ def _parse_metrics(output: str) -> ServerMetrics:
 
 def _clamp(value: float, minimum: float, maximum: float) -> float:
     return max(minimum, min(maximum, value))
+
+
+def _normalize_container_path(path: str) -> str:
+    value = (path or "/").replace("\\", "/").strip()
+    if "\x00" in value:
+        raise MetricsUnavailableError("Path is invalid.")
+    if not value.startswith("/"):
+        value = "/" + value
+    normalized = posixpath.normpath(value)
+    if normalized in {"", "."}:
+        normalized = "/"
+    if not normalized.startswith("/"):
+        normalized = "/" + normalized
+    if len(normalized) > 4096:
+        raise MetricsUnavailableError("Path is too long.")
+    return normalized
+
+
+def _parse_container_path_output(output: str, requested_path: str) -> dict:
+    if output.startswith("path_not_found="):
+        raise MetricsUnavailableError(f"Path not found: {requested_path}")
+
+    lines = output.splitlines()
+    values: dict[str, str] = {}
+    entries: list[dict[str, str | int]] = []
+    content_lines: list[str] = []
+    in_content = False
+
+    for line in lines:
+        if in_content:
+            content_lines.append(line)
+            continue
+        if line == "content:":
+            in_content = True
+            continue
+        if line.startswith("entry="):
+            raw = line.removeprefix("entry=")
+            parts = raw.split("\t", 2)
+            if len(parts) != 3:
+                continue
+            entry_type, raw_size, name = parts
+            try:
+                size: str | int = int(raw_size)
+            except ValueError:
+                size = raw_size
+            entries.append({"type": entry_type, "name": name, "size": size})
+            continue
+        if "=" in line:
+            key, value = line.split("=", 1)
+            values[key] = value
+
+    kind = values.get("kind")
+    path = values.get("path") or requested_path
+    if kind == "directory":
+        entries.sort(key=lambda item: (item["type"] != "directory", str(item["name"]).lower()))
+        return {"type": "directory", "path": path, "entries": entries}
+    if kind == "file":
+        size = 0
+        try:
+            size = int(values.get("size", "0"))
+        except ValueError:
+            size = 0
+        return {
+            "type": "file",
+            "path": path,
+            "size": size,
+            "truncated": values.get("truncated") == "1",
+            "content": "\n".join(content_lines),
+        }
+
+    raise MetricsUnavailableError("Docker returned an unsupported file response.")
 
 
 def _metrics_command() -> str:
@@ -459,6 +545,87 @@ if [ -z "$docker_cmd" ]; then
 fi
 
 $docker_cmd logs --tail {tail} --timestamps {container_id} 2>&1
+"""
+
+
+def _container_files_command(container_id: str, path: str) -> str:
+    script = r"""
+target="$1"
+limit=262144
+
+if [ ! -e "$target" ]; then
+  printf 'path_not_found=%s\n' "$target"
+  exit 0
+fi
+
+if [ -d "$target" ]; then
+  printf 'kind=directory\n'
+  printf 'path=%s\n' "$target"
+  for item in "$target"/* "$target"/.[!.]* "$target"/..?*; do
+    [ -e "$item" ] || continue
+    name="${item##*/}"
+    if [ "$name" = "." ] || [ "$name" = ".." ]; then
+      continue
+    fi
+    if [ -d "$item" ]; then
+      kind="directory"
+    elif [ -L "$item" ]; then
+      kind="link"
+    else
+      kind="file"
+    fi
+    size="-"
+    if [ -f "$item" ]; then
+      size="$(wc -c < "$item" 2>/dev/null | tr -d ' ' || printf '-')"
+    fi
+    printf 'entry=%s\t%s\t%s\n' "$kind" "$size" "$name"
+  done
+  exit 0
+fi
+
+if [ -f "$target" ] || [ -L "$target" ]; then
+  size="$(wc -c < "$target" 2>/dev/null | tr -d ' ' || printf 0)"
+  truncated=0
+  if [ "${size:-0}" -gt "$limit" ] 2>/dev/null; then
+    truncated=1
+  fi
+  printf 'kind=file\n'
+  printf 'path=%s\n' "$target"
+  printf 'size=%s\n' "$size"
+  printf 'truncated=%s\n' "$truncated"
+  printf 'content:\n'
+  if [ "$truncated" = "1" ]; then
+    dd if="$target" bs="$limit" count=1 2>/dev/null || true
+  else
+    cat "$target" 2>/dev/null || true
+  fi
+  exit 0
+fi
+
+printf 'path_not_found=%s\n' "$target"
+"""
+    safe_container = shlex.quote(container_id)
+    safe_script = shlex.quote(script)
+    safe_path = shlex.quote(path)
+    return f"""
+set -eu
+
+docker_cmd=""
+
+if command -v docker >/dev/null 2>&1; then
+  if docker ps -a --format '{{{{.ID}}}}' >/dev/null 2>&1; then
+    docker_cmd="docker"
+  elif command -v sudo >/dev/null 2>&1 && sudo -n docker ps -a --format '{{{{.ID}}}}' >/dev/null 2>&1; then
+    docker_cmd="sudo -n docker"
+  fi
+fi
+
+if [ -z "$docker_cmd" ]; then
+  echo "docker_unavailable=permission_denied_or_not_installed"
+  exit 0
+fi
+
+$docker_cmd exec {safe_container} sh -lc {safe_script} sh {safe_path}
 """
 
 
