@@ -15,15 +15,20 @@
   <body>
     <div class="shell">
       <aside class="sidebar">
-        <a class="brand" href="/dashboard/analytics">
-          <span class="brand__mark brand__mark--image">
-            <img src="/static/img/logo-icon.svg" alt="" aria-hidden="true">
-          </span>
-          <span>
-            <strong>AirDock</strong>
-            <small>Панель автоматизации</small>
-          </span>
-        </a>
+        <div class="sidebar__brand-row">
+          <a class="brand" href="/dashboard/analytics">
+            <span class="brand__mark brand__mark--image">
+              <img src="/static/img/logo-icon.svg" alt="" aria-hidden="true">
+            </span>
+            <span>
+              <strong>AirDock</strong>
+              <small>Панель автоматизации</small>
+            </span>
+          </a>
+          <button class="sidebar__collapse" type="button" aria-label="Свернуть меню">
+            <i data-lucide="chevron-left" aria-hidden="true"></i>
+          </button>
+        </div>
 
         <nav class="nav" aria-label="Основная навигация">
           <a class="nav__link {% if active_page == 'analytics' %}nav__link--active{% endif %}" href="/dashboard/analytics">
@@ -58,7 +63,7 @@
         {% if current_user and current_user.user_type.can_manage %}
           <section class="admin-status" aria-label="Административная часть">
             <div class="admin-status__title">
-              <span>Административная часть</span>
+              <span>Состояние системы</span>
               <i data-lucide="shield-check" aria-hidden="true"></i>
             </div>
             <div class="service-status" data-health-url="/dashboard/health">
@@ -79,22 +84,26 @@
         {% endif %}
 
         <div class="period-picker" aria-label="Управление сессией">
-          <span>{{ current_user.username if current_user else "Гость" }}</span>
-          <span class="period-picker__active">
-            {% if current_user and current_user.user_type.value == "owner" %}Владелец{% elif current_user and current_user.user_type.value == "admin" %}Администратор{% elif current_user %}Пользователь{% else %}Закрыто{% endif %}
-          </span>
-          <form method="post" action="/dashboard/auth/refresh">
-            <button type="submit">
-              <i data-lucide="refresh-cw" aria-hidden="true"></i>
-              Обновить
-            </button>
-          </form>
-          <form method="post" action="/dashboard/logout">
-            <button type="submit">
-              <i data-lucide="log-out" aria-hidden="true"></i>
-              Выйти
-            </button>
-          </form>
+          <div class="sidebar-user-card">
+            <span class="sidebar-user-card__avatar">{{ (current_user.username[:2] if current_user else "Г").upper() }}</span>
+            <span class="sidebar-user-card__body">
+              <strong>{{ current_user.username if current_user else "Гость" }}</strong>
+              <small>{% if current_user and current_user.user_type.value == "owner" %}Владелец{% elif current_user and current_user.user_type.value == "admin" %}Администратор{% elif current_user %}Пользователь{% else %}Закрыто{% endif %}</small>
+            </span>
+            <i data-lucide="chevron-down" aria-hidden="true"></i>
+          </div>
+          <div class="sidebar-session-actions">
+            <form method="post" action="/dashboard/auth/refresh">
+              <button type="submit" aria-label="Обновить">
+                <i data-lucide="settings" aria-hidden="true"></i>
+              </button>
+            </form>
+            <form method="post" action="/dashboard/logout">
+              <button type="submit" aria-label="Выйти">
+                <i data-lucide="log-out" aria-hidden="true"></i>
+              </button>
+            </form>
+          </div>
         </div>
       </aside>
 

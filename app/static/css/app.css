@@ -11010,3 +11010,846 @@ body {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Global sidebar refresh */
+@media (min-width: 981px) {
+  .shell {
+    width: 100% !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    display: grid !important;
+    grid-template-columns: 280px minmax(0, 1fr) !important;
+    gap: 0 !important;
+  }
+
+  .content {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    min-height: 100dvh !important;
+    padding: 28px 34px 28px 36px !important;
+    border-radius: 0 !important;
+  }
+}
+
+.sidebar {
+  border-radius: 0 !important;
+  border-width: 0 1px 0 0 !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(79, 141, 247, 0.13), transparent 34%),
+    linear-gradient(180deg, rgba(13, 25, 52, 0.96), rgba(5, 12, 27, 0.98)) !important;
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.035) !important;
+}
+
+@media (min-width: 981px) {
+  .sidebar {
+    position: sticky !important;
+    top: 0 !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    width: 280px !important;
+    padding: 24px 18px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto;
+  }
+}
+
+.sidebar__brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.sidebar .brand {
+  min-width: 0;
+  margin: 0 !important;
+  color: #f8fbff;
+  text-decoration: none;
+}
+
+.sidebar .brand strong {
+  color: #f8fbff;
+  font-size: 22px !important;
+  font-weight: 850 !important;
+  letter-spacing: 0;
+}
+
+.sidebar .brand small {
+  display: none !important;
+}
+
+.sidebar .brand .brand__mark--image {
+  width: 48px !important;
+  height: 48px !important;
+  flex: 0 0 48px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.sidebar .brand .brand__mark--image img {
+  width: 100% !important;
+  height: 100% !important;
+  filter:
+    drop-shadow(0 0 12px rgba(79, 141, 247, 0.62))
+    drop-shadow(0 0 22px rgba(34, 211, 238, 0.22));
+}
+
+.sidebar__collapse {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 999px;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.38);
+  cursor: pointer;
+}
+
+.sidebar__collapse svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sidebar .nav {
+  display: grid !important;
+  gap: 10px !important;
+  padding: 0 0 28px !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15) !important;
+}
+
+.sidebar .nav__link {
+  min-height: 50px !important;
+  gap: 14px !important;
+  padding: 11px 16px !important;
+  border: 1px solid transparent;
+  border-radius: 8px !important;
+  color: #c4ccdd !important;
+  font-size: 16px !important;
+  font-weight: 650 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.sidebar .nav__link:hover {
+  color: #f8fbff !important;
+  border-color: rgba(139, 92, 246, 0.24);
+  background: rgba(139, 92, 246, 0.12) !important;
+}
+
+.sidebar .nav__link--active {
+  color: #f8fbff !important;
+  border-color: rgba(167, 139, 250, 0.44) !important;
+  background:
+    linear-gradient(135deg, rgba(139, 92, 246, 0.58), rgba(79, 70, 229, 0.42)),
+    rgba(139, 92, 246, 0.2) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 14px 34px rgba(88, 28, 135, 0.22) !important;
+}
+
+.sidebar .nav__icon {
+  width: 24px !important;
+  height: 24px !important;
+  flex: 0 0 24px;
+  color: currentColor !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.sidebar .nav__icon svg {
+  width: 22px !important;
+  height: 22px !important;
+  stroke-width: 2.15 !important;
+}
+
+.sidebar .admin-status {
+  margin: 28px 0 0 !important;
+  padding: 0 0 28px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.sidebar .admin-status__title {
+  margin: 0 12px 14px !important;
+  color: #717c98 !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.sidebar .admin-status__title svg {
+  display: none;
+}
+
+.sidebar .service-status {
+  min-height: 78px !important;
+  padding: 14px 16px !important;
+  border: 1px solid rgba(34, 197, 94, 0.18) !important;
+  border-radius: 12px !important;
+  background:
+    linear-gradient(135deg, rgba(16, 185, 129, 0.13), rgba(14, 165, 233, 0.05)),
+    rgba(15, 42, 48, 0.48) !important;
+  color: #e8fff1 !important;
+}
+
+.sidebar .admin-status .service-status + .service-status {
+  margin-top: 12px !important;
+}
+
+.sidebar .service-status__dot {
+  width: 11px !important;
+  height: 11px !important;
+  background: #34d399 !important;
+  box-shadow: 0 0 0 5px rgba(52, 211, 153, 0.12), 0 0 18px rgba(52, 211, 153, 0.54) !important;
+}
+
+.sidebar .service-status__body strong {
+  color: #f8fbff;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+}
+
+.sidebar .service-status__body small {
+  color: #9fb0c8 !important;
+  font-size: 12px !important;
+}
+
+.sidebar .service-status--down {
+  border-color: rgba(248, 113, 113, 0.24) !important;
+  background:
+    linear-gradient(135deg, rgba(248, 113, 113, 0.16), rgba(14, 165, 233, 0.04)),
+    rgba(50, 18, 31, 0.48) !important;
+}
+
+.sidebar .service-status--down .service-status__dot {
+  background: #f87171 !important;
+  box-shadow: 0 0 0 5px rgba(248, 113, 113, 0.13), 0 0 18px rgba(248, 113, 113, 0.48) !important;
+}
+
+.sidebar .period-picker {
+  margin-top: auto !important;
+  padding-top: 26px !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 14px !important;
+  border-top: 0 !important;
+}
+
+.sidebar-user-card {
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.44);
+}
+
+.sidebar-user-card__avatar {
+  width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #8b5cf6, #4f46e5) !important;
+  color: #ffffff !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+}
+
+.sidebar-user-card__body {
+  display: grid !important;
+  min-width: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  text-align: left;
+}
+
+.sidebar-user-card__body strong,
+.sidebar-user-card__body small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-user-card__body strong {
+  color: #f8fbff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.sidebar-user-card__body small {
+  margin-top: 3px;
+  color: #9fb0c8;
+  font-size: 12px;
+}
+
+.sidebar-user-card > svg {
+  width: 16px;
+  height: 16px;
+  color: #a8b3cf;
+}
+
+.sidebar-session-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.34);
+}
+
+.sidebar-session-actions form {
+  margin: 0;
+}
+
+.sidebar-session-actions form + form {
+  border-left: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.sidebar-session-actions button {
+  width: 100% !important;
+  min-height: 52px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #aeb8d6 !important;
+}
+
+.sidebar-session-actions button:hover {
+  color: #f8fbff !important;
+  background: rgba(139, 92, 246, 0.12) !important;
+}
+
+.sidebar-session-actions svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+@media (max-width: 980px) {
+  .sidebar__brand-row {
+    margin-bottom: 14px;
+  }
+
+  .sidebar__collapse {
+    display: none;
+  }
+
+  .sidebar .nav {
+    border-bottom: 0 !important;
+    padding-bottom: 10px !important;
+  }
+
+  .sidebar .nav__link {
+    min-height: 44px !important;
+    font-size: 14px !important;
+  }
+
+  .sidebar .admin-status {
+    padding-bottom: 14px !important;
+  }
+
+  .sidebar .period-picker {
+    padding-top: 12px !important;
+  }
+}
+
+/* Sidebar layout guard and collapse mode */
+:root {
+  --airdock-sidebar-width: 356px;
+  --airdock-sidebar-collapsed-width: 88px;
+}
+
+@media (min-width: 981px) {
+  .shell {
+    grid-template-columns: var(--airdock-sidebar-width) minmax(0, 1fr) !important;
+  }
+
+  .sidebar {
+    width: var(--airdock-sidebar-width) !important;
+  }
+
+  .content {
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+    padding: 24px 28px !important;
+  }
+
+  body.sidebar-collapsed .shell {
+    grid-template-columns: var(--airdock-sidebar-collapsed-width) minmax(0, 1fr) !important;
+  }
+
+  body.sidebar-collapsed .sidebar {
+    width: var(--airdock-sidebar-collapsed-width) !important;
+    padding-inline: 14px !important;
+  }
+
+  body.sidebar-collapsed .sidebar__brand-row {
+    justify-content: center;
+  }
+
+  body.sidebar-collapsed .sidebar .brand {
+    justify-content: center;
+  }
+
+  body.sidebar-collapsed .sidebar .brand > span:not(.brand__mark),
+  body.sidebar-collapsed .sidebar .nav__link {
+    font-size: 0 !important;
+  }
+
+  body.sidebar-collapsed .sidebar__collapse {
+    position: absolute;
+    top: 24px;
+    right: -18px;
+    z-index: 5;
+    background: #101a37;
+  }
+
+  body.sidebar-collapsed .sidebar__collapse svg {
+    transform: rotate(180deg);
+  }
+
+  body.sidebar-collapsed .sidebar .nav__link {
+    justify-content: center;
+    padding-inline: 0 !important;
+  }
+
+  body.sidebar-collapsed .sidebar .admin-status,
+  body.sidebar-collapsed .sidebar-user-card__body,
+  body.sidebar-collapsed .sidebar-user-card > svg {
+    display: none !important;
+  }
+
+  body.sidebar-collapsed .sidebar .period-picker {
+    padding-top: 0 !important;
+  }
+
+  body.sidebar-collapsed .sidebar-user-card {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding: 10px !important;
+  }
+
+  body.sidebar-collapsed .sidebar-session-actions {
+    grid-template-columns: 1fr;
+  }
+
+  body.sidebar-collapsed .sidebar-session-actions form + form {
+    border-left: 0;
+    border-top: 1px solid rgba(148, 163, 184, 0.16);
+  }
+}
+
+@media (min-width: 981px) {
+  .analytics-hero h1 {
+    font-size: clamp(32px, 3.2vw, 44px) !important;
+  }
+
+  .analytics-hero {
+    margin-bottom: 18px !important;
+  }
+
+  .analytics-overview {
+    gap: 14px !important;
+  }
+
+  .analytics-kpi-card {
+    min-height: 148px !important;
+    padding: 18px 20px !important;
+  }
+
+  .analytics-kpi-card strong {
+    font-size: 30px !important;
+  }
+
+  .analytics-main-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.31fr) !important;
+    gap: 14px !important;
+  }
+
+  .analytics-node {
+    gap: 14px !important;
+    padding: 16px 18px !important;
+  }
+
+  .analytics-node__metrics {
+    gap: 12px !important;
+  }
+
+  .analytics-node-metric strong {
+    font-size: 22px !important;
+  }
+}
+/* ==========================================================
+   AirDock layout hotfix v2
+   Put this file AFTER app.css, or append it to the very end of app.css.
+   Fixes sidebar/content overlap caused by mixed fixed+grid sidebar rules.
+   ========================================================== */
+
+:root {
+  --airdock-sidebar-open: 300px;
+  --airdock-sidebar-mini: 88px;
+  --airdock-content-pad-x: clamp(22px, 2.2vw, 36px);
+}
+
+html,
+body {
+  width: 100% !important;
+  min-width: 320px !important;
+  overflow-x: hidden !important;
+}
+
+body {
+  background:
+    radial-gradient(circle at 82% 92%, rgba(67, 56, 202, 0.30), transparent 32%),
+    radial-gradient(circle at 8% 0%, rgba(37, 99, 235, 0.18), transparent 34%),
+    linear-gradient(135deg, #070b18 0%, #0a1020 48%, #070b18 100%) !important;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+@media (min-width: 981px) {
+  .shell {
+    position: relative !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    display: grid !important;
+    grid-template-columns: var(--airdock-sidebar-open) minmax(0, 1fr) !important;
+    gap: 0 !important;
+    align-items: start !important;
+    overflow: clip !important;
+  }
+
+  .sidebar {
+    grid-column: 1 !important;
+    position: sticky !important;
+    top: 0 !important;
+    left: auto !important;
+    width: var(--airdock-sidebar-open) !important;
+    min-width: var(--airdock-sidebar-open) !important;
+    max-width: var(--airdock-sidebar-open) !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    padding: 24px 18px !important;
+    border-radius: 0 !important;
+    border-width: 0 1px 0 0 !important;
+    z-index: 20 !important;
+    transform: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .content {
+    grid-column: 2 !important;
+    position: relative !important;
+    z-index: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    padding: 30px var(--airdock-content-pad-x) 48px !important;
+    border-radius: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+
+  body.sidebar-collapsed .shell {
+    grid-template-columns: var(--airdock-sidebar-mini) minmax(0, 1fr) !important;
+  }
+
+  body.sidebar-collapsed .sidebar {
+    width: var(--airdock-sidebar-mini) !important;
+    min-width: var(--airdock-sidebar-mini) !important;
+    max-width: var(--airdock-sidebar-mini) !important;
+    padding-inline: 14px !important;
+  }
+}
+
+/* Do not let sidebar items bleed under the content panel. */
+.sidebar,
+.sidebar * {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.sidebar .nav,
+.sidebar .admin-status,
+.sidebar .period-picker,
+.sidebar-user-card,
+.sidebar-session-actions {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.sidebar .nav__link {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  white-space: normal !important;
+}
+
+.sidebar .nav__link span:not(.nav__icon),
+.sidebar .brand strong,
+.sidebar-user-card__body strong,
+.sidebar-user-card__body small,
+.service-status__body strong,
+.service-status__body small {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Stable analytics layout. */
+.metric-grid,
+.analytics-overview,
+.analytics-resource-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  width: 100% !important;
+}
+
+.analytics-main-grid,
+.analytics-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px) !important;
+  gap: 14px !important;
+  align-items: start !important;
+  width: 100% !important;
+}
+
+.analytics-node {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1.8fr) !important;
+  gap: 14px !important;
+  align-items: center !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+.analytics-node__metrics {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.analytics-node__footer {
+  grid-column: 1 / -1 !important;
+}
+
+.panel,
+.metric-card,
+.analytics-kpi-card,
+.analytics-panel,
+.runner-card,
+.project-card,
+.pipeline-card,
+.task-card,
+.form-panel,
+.settings-panel,
+.task-filter-panel,
+.task-list-panel,
+.activity-log-panel {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.table-wrap,
+.panel--table,
+.analytics-task-list,
+.docker-containers-rail,
+.docker-images-rail,
+.pipeline-builder__playbook-list,
+.playbook-files,
+.cmd-log,
+.task-log,
+.terminal-output,
+pre {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1320px) and (min-width: 981px) {
+  :root {
+    --airdock-sidebar-open: 260px;
+    --airdock-content-pad-x: 22px;
+  }
+
+  .analytics-main-grid,
+  .analytics-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .metric-grid,
+  .analytics-overview,
+  .analytics-resource-grid,
+  .project-grid,
+  .runner-grid,
+  .pipeline-grid,
+  .monitoring-grid,
+  .docker-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .analytics-node,
+  .analytics-node__metrics,
+  .project-detail-grid,
+  .project-settings-grid,
+  .pipeline-builder,
+  .playbook-detail-grid,
+  .task-detail-grid,
+  .users-layout,
+  .management-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .shell {
+    width: min(100% - 24px, 1180px) !important;
+    min-height: auto !important;
+    margin: 12px auto !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    overflow: visible !important;
+  }
+
+  .sidebar {
+    position: relative !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    border-radius: 20px !important;
+    border-width: 1px !important;
+  }
+
+  .content {
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 0 0 28px !important;
+    border-radius: 0 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .shell {
+    width: calc(100% - 16px) !important;
+    margin: 8px auto !important;
+  }
+
+  .metric-grid,
+  .analytics-overview,
+  .analytics-resource-grid,
+  .analytics-main-grid,
+  .analytics-grid,
+  .dashboard-grid,
+  .form-grid,
+  .form-grid--settings,
+  .project-grid,
+  .runner-grid,
+  .pipeline-grid,
+  .monitoring-grid,
+  .docker-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .table,
+  .panel--table table {
+    min-width: 640px !important;
+  }
+}
+
+/* === Analytics: courier panel same height as summary === */
+
+.dashboard-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 4fr) minmax(280px, 1fr) !important;
+  align-items: stretch !important;
+  gap: 16px !important;
+}
+
+/* Курьеры слева */
+.dashboard-grid > .panel--wide {
+  grid-column: 1 / 2 !important;
+  height: 100% !important;
+  min-height: 360px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Сводка справа */
+.dashboard-grid > .panel--centered {
+  grid-column: 2 / 3 !important;
+  height: 100% !important;
+  min-height: 360px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Внутренний список курьеров должен растягиваться */
+.dashboard-grid > .panel--wide [data-analytics-nodes] {
+  flex: 1 1 auto !important;
+  display: grid !important;
+  align-content: stretch !important;
+}
+
+/* Карточка курьера внутри панели */
+.analytics-node {
+  height: 100% !important;
+  min-height: 220px !important;
+  align-items: stretch !important;
+}
+
+/* Нижний блок с последними задачами — на всю ширину */
+.dashboard-grid > .panel:nth-child(n + 3) {
+  grid-column: 1 / -1 !important;
+}
+
+/* Адаптив */
+@media (max-width: 1100px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-grid > .panel--wide,
+  .dashboard-grid > .panel--centered,
+  .dashboard-grid > .panel:nth-child(n + 3) {
+    grid-column: 1 / -1 !important;
+    min-height: auto !important;
+  }
+
+  .analytics-node {
+    min-height: auto !important;
+  }
+}

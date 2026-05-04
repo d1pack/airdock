@@ -3,6 +3,32 @@ document.addEventListener("DOMContentLoaded", () => {
     window.lucide.createIcons();
   }
 
+  const sidebarCollapse = document.querySelector(".sidebar__collapse");
+  if (sidebarCollapse) {
+    const storageKey = "airdock.sidebarCollapsed";
+    const setSidebarCollapsed = (collapsed) => {
+      document.body.classList.toggle("sidebar-collapsed", collapsed);
+      sidebarCollapse.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      sidebarCollapse.setAttribute("aria-label", collapsed ? "Развернуть меню" : "Свернуть меню");
+      try {
+        window.localStorage.setItem(storageKey, collapsed ? "1" : "0");
+      } catch (error) {
+        // Ignore private-mode storage failures.
+      }
+    };
+
+    let shouldCollapse = false;
+    try {
+      shouldCollapse = window.localStorage.getItem(storageKey) === "1";
+    } catch (error) {
+      shouldCollapse = false;
+    }
+    setSidebarCollapsed(shouldCollapse);
+    sidebarCollapse.addEventListener("click", () => {
+      setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+    });
+  }
+
   const escapeHtml = (value) => String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
