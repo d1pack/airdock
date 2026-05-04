@@ -23,7 +23,7 @@
     <div class="runner-list">
       {% for node in nodes %}
         <article class="runner-card runner-card--{{ node.status }}">
-          <a class="runner-card__link" href="/runners/{{ node.id }}/settings" aria-label="Открыть настройки {{ node.name }}">
+          <a class="runner-card__link" href="/dashboard/runners/{{ node.id }}/settings" aria-label="Открыть настройки {{ node.name }}">
             <div class="runner-card__icon">
               <i data-lucide="route" aria-hidden="true"></i>
             </div>
@@ -46,11 +46,11 @@
             </div>
           </a>
           <div class="runner-card__actions" aria-label="Действия с курьером">
-            <a class="icon-button" href="/runners/{{ node.id }}/settings" title="Настроить" aria-label="Настроить {{ node.name }}">
+            <a class="icon-button" href="/dashboard/runners/{{ node.id }}/settings" title="Настроить" aria-label="Настроить {{ node.name }}">
               <i data-lucide="settings-2" aria-hidden="true"></i>
             </a>
             {% if can_manage %}
-              <form method="post" action="/runners/{{ node.id }}/delete" data-confirm="Удалить курьера {{ node.name }}?">
+              <form method="post" action="/dashboard/runners/{{ node.id }}/delete" data-confirm="Удалить курьера {{ node.name }}?">
                 <button class="icon-button icon-button--danger" type="submit" title="Удалить" aria-label="Удалить {{ node.name }}">
                   <i data-lucide="trash-2" aria-hidden="true"></i>
                 </button>
@@ -75,7 +75,7 @@
       </div>
 
       {% if can_manage %}
-        <form class="form form--soft" method="post" action="/runners/">
+        <form class="form form--soft" method="post" action="/dashboard/runners/">
           <input type="hidden" name="icon" value="truck">
           <label>
             Имя курьера

@@ -1,77 +1,141 @@
 {% extends "base.html" %}
-
+{% block css_style %}
+<link rel="stylesheet" href="/static/css/pipelines_scoped_visual_patch.css">
+{%endblock %}
 {% block title %}Пайплайны - Airdock{% endblock %}
 
 {% block content %}
-  <header class="page-header">
-    <div>
-      <p class="eyebrow">AUTOMATION FLOW</p>
-      <h1>Пайплайны</h1>
-      <p class="page-header__description">Управляйте автоматизированными сценариями деплоя и инфраструктуры</p>
-    </div>
-    <a class="button button--primary" href="/dashboard/pipelines/new" aria-label="Создать новый пайплайн">
-      <i data-lucide="circle-plus" aria-hidden="true"></i>
-      Создать пайплайн
-    </a>
-  </header>
+  <div class="ad-pipelines-page">
+    <header class="page-header ad-pipelines-hero">
+      <div class="ad-pipelines-hero__copy">
+        <p class="eyebrow ad-pipelines-hero__eyebrow">AUTOMATION FLOW</p>
+        <h1>Пайплайны</h1>
+        <p class="page-header__description ad-pipelines-hero__description">
+          Автоматизированные сценарии для деплоя, плейбуков и инфраструктурных процессов.
+        </p>
+      </div>
 
-  {% if error == "forbidden" %}
-    <section class="alert">Недостаточно прав для просмотра пайплайна.</section>
-  {% elif error == "missing" %}
-    <section class="alert">Пайплайн не найден.</section>
-  {% endif %}
+      <a class="button button--primary ad-pipelines-create" href="/dashboard/pipelines/new" aria-label="Создать новый пайплайн">
+        <i data-lucide="circle-plus" aria-hidden="true"></i>
+        Создать пайплайн
+      </a>
+    </header>
 
-  <section class="pipeline-list">
-    {% for pipeline in pipelines %}
-      {% set latest_task = pipeline_tasks.get(pipeline.id) if pipeline_tasks is defined else None %}
-      <article class="pipeline-card">
-        <a class="pipeline-card__link" href="/dashboard/pipelines/{{ pipeline.id }}">
-          <span class="pipeline-card__icon">
-            <i data-lucide="workflow" aria-hidden="true"></i>
-          </span>
-          <span class="pipeline-card__body">
-            <strong>{{ pipeline.name }}</strong>
-            <span class="pipeline-card__meta">
-              {% if pipeline.project_links %}
-                {% for link in pipeline.project_links %}{{ link.project.name }}{% if not loop.last %}, {% endif %}{% endfor %}
-              {% else %}
-                {{ pipeline.project.name }}
-              {% endif %}
-              / {{ pipeline.steps|length }} шагов
+    {% if error == "forbidden" %}
+      <section class="alert">Недостаточно прав для просмотра пайплайна.</section>
+    {% elif error == "missing" %}
+      <section class="alert">Пайплайн не найден.</section>
+    {% endif %}
+
+    <section class="ad-pipeline-list" aria-label="Список пайплайнов">
+      {% for pipeline in pipelines %}
+        {% set latest_task = pipeline_tasks.get(pipeline.id) if pipeline_tasks is defined else None %}
+
+        <article class="ad-pipeline-card">
+          <div class="ad-pipeline-card__main">
+            <a class="ad-pipeline-card__logo" href="/dashboard/pipelines/{{ pipeline.id }}" aria-label="Открыть пайплайн {{ pipeline.name }}">
+              <i data-lucide="workflow" aria-hidden="true"></i>
+            </a>
+
+            <div class="ad-pipeline-card__content">
+              <div class="ad-pipeline-card__topline">
+                <a class="ad-pipeline-card__title" href="/dashboard/pipelines/{{ pipeline.id }}">
+                  {{ pipeline.name }}
+                </a>
+
+                <a class="ad-pipeline-card__menu" href="/dashboard/pipelines/{{ pipeline.id }}" aria-label="Открыть настройки пайплайна {{ pipeline.name }}">
+                  <i data-lucide="more-vertical" aria-hidden="true"></i>
+                </a>
+              </div>
+
+              <div class="ad-pipeline-card__projects" aria-label="Связанные проекты">
+                <span class="ad-pipeline-card__label">Проекты</span>
+                {% if pipeline.project_links %}
+                  {% for link in pipeline.project_links[:4] %}
+                    <span class="ad-pipeline-chip">{{ link.project.name }}</span>
+                  {% endfor %}
+                  {% if pipeline.project_links|length > 4 %}
+                    <span class="ad-pipeline-chip ad-pipeline-chip--muted">+{{ pipeline.project_links|length - 4 }}</span>
+                  {% endif %}
+                {% elif pipeline.project %}
+                  <span class="ad-pipeline-chip">{{ pipeline.project.name }}</span>
+                {% else %}
+                  <span class="ad-pipeline-chip ad-pipeline-chip--muted">Без проекта</span>
+                {% endif %}
+              </div>
+
+              <div class="ad-pipeline-card__meta">
+                <span>
+                  <i data-lucide="clock-3" aria-hidden="true"></i>
+                  {{ pipeline.steps|length }} {{ 'шаг' if pipeline.steps|length == 1 else 'шага' if pipeline.steps|length in [2, 3, 4] else 'шагов' }}
+                </span>
+                <i class="ad-pipeline-card__dot" aria-hidden="true"></i>
+                <span>{{ pipeline.description or "Описание не указано." }}</span>
+              </div>
+            </div>
+          </div>
+
+          <aside class="ad-pipeline-card__side">
+            <span class="task-status task-status--{{ latest_task.status_tone if latest_task else 'neutral' }} ad-pipeline-status">
+              <i></i>
+              <span class="task-status__label">{{ latest_task.status_label if latest_task else "Еще не запускался" }}</span>
             </span>
-            <span class="pipeline-card__description">{{ pipeline.description or "Описание не указано." }}</span>
-          </span>
-        </a>
 
-        <div class="pipeline-card__steps">
-          {% for step in pipeline.steps[:5] %}
-            <span class="pipeline-step-tag">
-              <i data-lucide="play" aria-hidden="true"></i>
-              {{ step.playbook.name if step.playbook else "Playbook удален" }}
-            </span>
-          {% else %}
-            <span class="pipeline-card__flow-empty">Шаги еще не добавлены</span>
-          {% endfor %}
-          {% if pipeline.steps|length > 5 %}
-            <span class="pipeline-step-tag pipeline-step-tag--more">+{{ pipeline.steps|length - 5 }}</span>
-          {% endif %}
-        </div>
+            {% if latest_task %}
+              <span class="ad-pipeline-card__started">
+                <i data-lucide="timer" aria-hidden="true"></i>
+                Запущен: {{ latest_task.created_at.strftime('%d.%m.%Y %H:%M') if latest_task.created_at else 'недавно' }}
+              </span>
+            {% endif %}
 
-        <div class="pipeline-card__actions">
-          <span class="task-status task-status--{{ latest_task.status_tone if latest_task else 'neutral' }}">
-            <i></i>
-            <span class="task-status__label">{{ latest_task.status_label if latest_task else "Еще не запускался" }}</span>
-          </span>
-          <form method="post" action="/dashboard/pipelines/{{ pipeline.id }}/run">
-            <button class="button button--primary button--compact" type="submit" {% if not pipeline.steps %}disabled{% endif %} aria-label="Запустить пайплайн {{ pipeline.name }}">
-              <i data-lucide="play" aria-hidden="true"></i>
-              Запустить
-            </button>
-          </form>
-        </div>
-      </article>
-    {% else %}
-      <section class="panel empty-panel">Пайплайнов пока нет.</section>
-    {% endfor %}
-  </section>
+            <form method="post" action="/dashboard/pipelines/{{ pipeline.id }}/run" class="ad-pipeline-card__run-form">
+              <button class="button button--primary ad-pipeline-run" type="submit" {% if not pipeline.steps %}disabled{% endif %} aria-label="Запустить пайплайн {{ pipeline.name }}">
+                <i data-lucide="play" aria-hidden="true"></i>
+                Запустить
+              </button>
+            </form>
+          </aside>
+
+          <div class="ad-pipeline-flow" aria-label="Шаги пайплайна">
+            {% for step in pipeline.steps[:3] %}
+              <a class="ad-pipeline-flow__node" href="/dashboard/pipelines/{{ pipeline.id }}">
+                <span class="ad-pipeline-flow__index">{{ loop.index }}</span>
+                <span class="ad-pipeline-flow__icon">
+                  <i data-lucide="{{ 'box' if loop.index == 1 else 'building-2' if loop.index == 2 else 'database' }}" aria-hidden="true"></i>
+                </span>
+                <span class="ad-pipeline-flow__body">
+                  <strong>{{ step.playbook.name if step.playbook else "Playbook удален" }}</strong>
+                  <small>{{ step.playbook.project.name if step.playbook and step.playbook.project else "Шаг пайплайна" }}</small>
+                </span>
+              </a>
+            {% else %}
+              <a class="ad-pipeline-flow__node ad-pipeline-flow__node--empty" href="/dashboard/pipelines/{{ pipeline.id }}">
+                <span class="ad-pipeline-flow__icon"><i data-lucide="plus" aria-hidden="true"></i></span>
+                <span class="ad-pipeline-flow__body">
+                  <strong>Добавить шаги</strong>
+                  <small>Настройте playbook-и</small>
+                </span>
+              </a>
+            {% endfor %}
+
+            {% if pipeline.steps|length > 3 %}
+              <a class="ad-pipeline-flow__node ad-pipeline-flow__node--more" href="/dashboard/pipelines/{{ pipeline.id }}">
+                <span class="ad-pipeline-flow__index">+{{ pipeline.steps|length - 3 }}</span>
+                <span class="ad-pipeline-flow__body">
+                  <strong>Еще шаги</strong>
+                  <small>Открыть builder</small>
+                </span>
+              </a>
+            {% endif %}
+          </div>
+        </article>
+      {% else %}
+        <section class="panel empty-panel ad-pipelines-empty">
+          <i data-lucide="workflow" aria-hidden="true"></i>
+          <strong>Пайплайнов пока нет</strong>
+          <span>Создайте первый сценарий деплоя и подключите playbook-и.</span>
+        </section>
+      {% endfor %}
+    </section>
+  </div>
 {% endblock %}
