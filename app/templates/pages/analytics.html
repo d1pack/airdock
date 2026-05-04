@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Аналитика - AirDock{% endblock %}
+
+{% block content %}
+  <header class="page-header analytics-header analytics-hero">
+    <div>
+      <h1>Аналитика <span aria-hidden="true"></span></h1>
+      <p class="page-subtitle">Сводка по проектам, задачам, пайплайнам и всем созданным курьерам.</p>
+    </div>
+    <div class="analytics-header__actions">
+      <div class="analytics-refresh-state">
+        <i data-lucide="refresh-cw" aria-hidden="true"></i>
+        <span data-analytics-updated>Данные обновляются</span>
+      </div>
+      <button class="button button--primary analytics-refresh-button" type="button" data-analytics-refresh>
+        <i data-lucide="refresh-cw" aria-hidden="true"></i>
+        Обновить метрики
+      </button>
+    </div>
+  </header>
+
+  <section class="metric-grid analytics-overview" aria-label="Ключевые показатели">
+    <article class="metric-card analytics-kpi-card analytics-kpi-card--online">
+      <div>
+        <span class="metric-card__label">Курьеры онлайн</span>
+        <strong data-analytics-value="nodes">{{ stats.nodes_up }} / {{ stats.nodes }}</strong>
+        <small>Онлайн / всего</small>
+      </div>
+      <span class="metric-live"><i></i>LIVE</span>
+      <div class="analytics-wave analytics-wave--violet" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <p><i class="dot dot--blue"></i>Все системы в сети</p>
+    </article>
+
+    <article class="metric-card analytics-kpi-card analytics-kpi-card--cpu">
+      <div>
+        <span class="metric-card__label">Использование CPU</span>
+        <strong data-analytics-value="cpu">0%</strong>
+        <small>Средняя загрузка</small>
+      </div>
+      <div class="analytics-ring analytics-ring--violet" aria-hidden="true"></div>
+      <p data-analytics-chip="cpu">0 GHz</p>
+    </article>
+
+    <article class="metric-card analytics-kpi-card analytics-kpi-card--ram">
+      <div>
+        <span class="metric-card__label">Использование RAM</span>
+        <strong data-analytics-value="ram">0%</strong>
+        <small>Средняя загрузка</small>
+      </div>
+      <div class="analytics-ring analytics-ring--blue" aria-hidden="true"></div>
+      <p data-analytics-chip="ram">0 / 0 GB</p>
+    </article>
+
+    <article class="metric-card analytics-kpi-card analytics-kpi-card--services">
+      <div>
+        <span class="metric-card__label">Активные сервисы</span>
+        <strong data-analytics-value="services">0</strong>
+        <small>Запущено сервисов</small>
+      </div>
+      <div class="analytics-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <p class="metric-ok"><i class="dot dot--green"></i>Все системы в норме</p>
+    </article>
+  </section>
+
+  <section class="analytics-grid analytics-main-grid">
+    <div class="analytics-left-column">
+      <article class="panel analytics-panel analytics-agents-panel" data-analytics-metrics="/dashboard/analytics/metrics">
+        <div class="panel__header analytics-panel__title">
+          <div>
+            <span class="panel-title-icon"><i data-lucide="bot" aria-hidden="true"></i></span>
+            <h2>Курьеры (агенты)</h2>
+          </div>
+          <div class="analytics-panel__actions">
+            <span class="runner-status runner-status--{{ 'up' if stats.nodes_up else 'down' }}" data-analytics-status>
+              <i></i>{{ "Курьеры отвечают" if stats.nodes_up else "Нет доступных курьеров" }}
+            </span>
+            <a class="button button--secondary button--compact" href="/dashboard/runners/">
+              Все курьеры
+              <i data-lucide="external-link" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="analytics-node-list" data-analytics-nodes>
+          {% for node in nodes %}
+            <article class="analytics-node analytics-node--{{ node.status }}">
+              <div class="analytics-node__identity">
+                <span class="analytics-node__icon"><i data-lucide="radio-tower" aria-hidden="true"></i></span>
+                <div>
+                  <span class="runner-status runner-status--{{ 'up' if node.status == 'up' else 'down' }}">
+                    <i></i>{{ "Онлайн" if node.status == "up" else "Нет связи" }}
+                  </span>
+                  <strong>{{ node.name }}</strong>
+                  <small>{{ node.server_ip }}</small>
+                  <dl>
+                    <div><dt>Uptime</dt><dd>—</dd></div>
+                    <div><dt>Последняя активность</dt><dd>—</dd></div>
+                    <div><dt>Версия агента</dt><dd>—</dd></div>
+                  </dl>
+                </div>
+              </div>
+
+              <div class="analytics-node__metrics">
+                <div class="analytics-node-metric analytics-node-metric--violet">
+                  <span>CPU</span>
+                  <strong>0%</strong>
+                  <div class="mini-line" aria-hidden="true"><i></i></div>
+                  <small>0 / 0 GHz</small>
+                </div>
+                <div class="analytics-node-metric analytics-node-metric--blue">
+                  <span>RAM</span>
+                  <strong>0%</strong>
+                  <div class="mini-line" aria-hidden="true"><i></i></div>
+                  <small>0 / 0 GB</small>
+                </div>
+                <div class="analytics-node-metric analytics-node-metric--cyan">
+                  <span>Диск</span>
+                  <strong>0%</strong>
+                  <div class="mini-line" aria-hidden="true"><i></i></div>
+                  <small>0 / 0 GB</small>
+                </div>
+                <div class="analytics-node-metric analytics-node-metric--violet">
+                  <span>Процессы</span>
+                  <strong>0</strong>
+                  <div class="mini-line" aria-hidden="true"><i></i></div>
+                  <small>Активных</small>
+                </div>
+              </div>
+
+              <div class="analytics-node__footer">
+                <span><i data-lucide="info" aria-hidden="true"></i>ОС: Ubuntu 22.04.4 LTS</span>
+                <span><i data-lucide="timer" aria-hidden="true"></i>Ядро: 5.15.0</span>
+                <span><i data-lucide="box" aria-hidden="true"></i>Docker: 25.0.3</span>
+                <span><i data-lucide="check-circle-2" aria-hidden="true"></i>Статус: Здоров</span>
+              </div>
+            </article>
+          {% else %}
+            <article class="docker-container-empty">
+              <i data-lucide="radio-tower" aria-hidden="true"></i>
+              <span>Курьеры пока не созданы.</span>
+            </article>
+          {% endfor %}
+        </div>
+      </article>
+    </div>
+
+    <article class="panel analytics-panel analytics-summary-panel">
+      <div class="panel__header">
+        <h2>Сводка</h2>
+      </div>
+      <div class="analytics-stat-list">
+        <span><i data-lucide="folder-kanban" aria-hidden="true"></i><small>Проекты</small><strong>{{ stats.projects }}</strong></span>
+        <span><i data-lucide="workflow" aria-hidden="true"></i><small>Пайплайны</small><strong>{{ stats.pipelines }}</strong></span>
+        <span><i data-lucide="list-checks" aria-hidden="true"></i><small>Задачи</small><strong>{{ "{:,}".format(stats.tasks).replace(",", " ") }}</strong></span>
+        <span class="is-danger"><i data-lucide="circle-alert" aria-hidden="true"></i><small>Ошибки задач</small><strong>{{ stats.tasks_failed }}</strong></span>
+      </div>
+      <a class="summary-link" href="/dashboard/projects/">
+        Перейти к проектам
+        <i data-lucide="chevron-right" aria-hidden="true"></i>
+      </a>
+    </article>
+  </section>
+
+  <article class="panel analytics-panel analytics-tasks-panel">
+    <div class="panel__header">
+      <h2>Последние задачи</h2>
+      <a class="button button--secondary button--compact" href="/dashboard/tasks/">Все задачи</a>
+    </div>
+    <div class="analytics-task-table">
+      <div class="analytics-task-row analytics-task-row--head">
+        <span>Задача</span>
+        <span>Проект / пайплайн</span>
+        <span>Статус</span>
+        <span>Запущена</span>
+        <span>Длительность</span>
+        <span></span>
+      </div>
+      {% for task in latest_tasks %}
+        <a href="/dashboard/tasks/{{ task.id }}" class="analytics-task-row">
+          <span class="analytics-task-name">
+            <i class="task-dot task-dot--{{ task.status_tone }}"></i>
+            <strong>{{ task.title }}</strong>
+          </span>
+          <span class="analytics-task-project">
+            {% if task.project %}{{ task.project.name }}{% else %}System{% endif %}
+            /
+            {% if task.pipeline %}{{ task.pipeline.name }}{% elif task.playbook %}{{ task.playbook.name }}{% else %}Metrics{% endif %}
+          </span>
+          <span class="analytics-task-status-cell">
+            <span class="task-status task-status--{{ task.status_tone }}">
+              <i></i><span class="task-status__label">{{ task.status_label }}</span>
+            </span>
+          </span>
+          <span>{{ task.created_at.strftime("%d.%m.%Y %H:%M") }}</span>
+          <span>—</span>
+          <span><i data-lucide="more-vertical" aria-hidden="true"></i></span>
+        </a>
+      {% else %}
+        <div class="docker-container-empty">
+          <i data-lucide="list-checks" aria-hidden="true"></i>
+          <span>Задачи пока не создавались.</span>
+        </div>
+      {% endfor %}
+    </div>
+  </article>
+{% endblock %}

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" width="56" height="56" fill="none">
+  <defs>
+    <linearGradient id="airdock-g" x1="8" y1="8" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563FF"></stop>
+      <stop offset="0.55" stop-color="#2E8BFF"></stop>
+      <stop offset="1" stop-color="#32D7E8"></stop>
+    </linearGradient>
+  </defs>
+
+  <path d="M12 44L28 8L44 44" stroke="url(#airdock-g)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+  <path d="M10 25C15 29 20 31 28 31C36 31 41 29 46 25" stroke="url(#airdock-g)" stroke-width="2.5" stroke-linecap="round"></path>
+  <path d="M28 31V45" stroke="url(#airdock-g)" stroke-width="2.5" stroke-linecap="round"></path>
+  <circle cx="28" cy="31" r="4.2" fill="url(#airdock-g)"></circle>
+  <rect x="7" y="22" width="6" height="6" rx="1.2" fill="url(#airdock-g)"></rect>
+  <rect x="43" y="22" width="6" height="6" rx="1.2" fill="url(#airdock-g)"></rect>
+  <rect x="25" y="45" width="6" height="6" rx="1.2" fill="url(#airdock-g)"></rect>
+</svg>

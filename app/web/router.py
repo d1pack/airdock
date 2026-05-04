@@ -3,7 +3,8 @@
 
 from fastapi import APIRouter
 
-from app.web.routes import admin, auth, containers, landing, nodes, pages, pipelines, projects, tasks, users
+from app.web.routes import users
+from app.web.routes import admin, auth, containers, landing, nodes, pages, pipelines, projects, tasks
 
 
 router = APIRouter()

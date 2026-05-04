@@ -882,7 +882,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       button.disabled = true;
       try {
-        const response = await fetch(`/projects/${projectId}/containers/${encodeURIComponent(nodeId)}/${encodeURIComponent(containerId)}/logs?tail=300`, {
+        const response = await fetch(`/dashboard/projects/${projectId}/containers/${encodeURIComponent(nodeId)}/${encodeURIComponent(containerId)}/logs?tail=300`, {
           headers: { Accept: "application/json" },
         });
         if (!response.ok) {
@@ -931,7 +931,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       button.disabled = true;
       try {
-        const response = await fetch(`/projects/${projectId}/containers/${encodeURIComponent(nodeId)}/${encodeURIComponent(containerId)}/${action}`, {
+        const response = await fetch(`/dashboard/projects/${projectId}/containers/${encodeURIComponent(nodeId)}/${encodeURIComponent(containerId)}/${action}`, {
           method: "POST",
           headers: { Accept: "application/json" },
         });
@@ -989,7 +989,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       button.disabled = true;
       try {
-        const response = await fetch(`/projects/${projectId}/images/${encodeURIComponent(nodeId)}/${encodeURIComponent(imageId)}/delete`, {
+        const response = await fetch(`/dashboard/projects/${projectId}/images/${encodeURIComponent(nodeId)}/${encodeURIComponent(imageId)}/delete`, {
           method: "POST",
           headers: { Accept: "application/json" },
         });
@@ -1169,16 +1169,59 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       nodesList.innerHTML = nodes.map((node) => {
         const online = node.status === "up";
+        const cpu = Number(node.cpu || 0);
+        const ram = Number(node.ram || 0);
+        const disk = Number(node.disk || 0);
+        const services = Number(node.services || 0);
         return `
           <article class="analytics-node analytics-node--${online ? "up" : "down"}">
-            <span class="analytics-node__icon"><i data-lucide="radio-tower" aria-hidden="true"></i></span>
-            <div>
-              <strong>${escapeHtml(node.name)}</strong>
-              <small>${escapeHtml(node.server_ip)} · CPU ${Number(node.cpu || 0).toFixed(1)}% · RAM ${Number(node.ram || 0).toFixed(1)}%</small>
+            <div class="analytics-node__identity">
+              <span class="analytics-node__icon"><i data-lucide="radio-tower" aria-hidden="true"></i></span>
+              <div>
+                <span class="runner-status runner-status--${online ? "up" : "down"}">
+                  <i></i>${online ? "Онлайн" : "Нет связи"}
+                </span>
+                <strong>${escapeHtml(node.name)}</strong>
+                <small>${escapeHtml(node.server_ip)}</small>
+                <dl>
+                  <div><dt>Uptime</dt><dd>${escapeHtml(node.uptime || "—")}</dd></div>
+                  <div><dt>Последняя активность</dt><dd>${online ? "сейчас" : "—"}</dd></div>
+                  <div><dt>Версия агента</dt><dd>—</dd></div>
+                </dl>
+              </div>
             </div>
-            <span class="runner-status runner-status--${online ? "up" : "down"}">
-              <i></i>${online ? `Онлайн · ${escapeHtml(node.uptime || "uptime")}` : "Нет связи"}
-            </span>
+            <div class="analytics-node__metrics">
+              <div class="analytics-node-metric analytics-node-metric--violet">
+                <span>CPU</span>
+                <strong>${cpu.toFixed(1)}%</strong>
+                <div class="mini-line" aria-hidden="true"><i style="background: linear-gradient(90deg, #8b5cf6 ${Math.min(cpu, 100)}%, rgba(139, 92, 246, 0.12) ${Math.min(cpu, 100)}%)"></i></div>
+                <small>Средняя загрузка</small>
+              </div>
+              <div class="analytics-node-metric analytics-node-metric--blue">
+                <span>RAM</span>
+                <strong>${ram.toFixed(1)}%</strong>
+                <div class="mini-line" aria-hidden="true"><i style="background: linear-gradient(90deg, #2563eb ${Math.min(ram, 100)}%, rgba(37, 99, 235, 0.14) ${Math.min(ram, 100)}%)"></i></div>
+                <small>Использовано</small>
+              </div>
+              <div class="analytics-node-metric analytics-node-metric--cyan">
+                <span>Диск</span>
+                <strong>${disk.toFixed(1)}%</strong>
+                <div class="mini-line" aria-hidden="true"><i style="background: linear-gradient(90deg, #22d3ee ${Math.min(disk, 100)}%, rgba(34, 211, 238, 0.14) ${Math.min(disk, 100)}%)"></i></div>
+                <small>Занято</small>
+              </div>
+              <div class="analytics-node-metric analytics-node-metric--violet">
+                <span>Процессы</span>
+                <strong>${services}</strong>
+                <div class="mini-line" aria-hidden="true"><i></i></div>
+                <small>Активных</small>
+              </div>
+            </div>
+            <div class="analytics-node__footer">
+              <span><i data-lucide="info" aria-hidden="true"></i>ОС: Ubuntu 22.04.4 LTS</span>
+              <span><i data-lucide="timer" aria-hidden="true"></i>Uptime: ${escapeHtml(node.uptime || "—")}</span>
+              <span><i data-lucide="box" aria-hidden="true"></i>Docker: доступен</span>
+              <span><i data-lucide="check-circle-2" aria-hidden="true"></i>Статус: ${online ? "Здоров" : "Нет связи"}</span>
+            </div>
           </article>
         `;
       }).join("");
@@ -1204,6 +1247,12 @@ document.addEventListener("DOMContentLoaded", () => {
         setAnalyticsValue("disk", Number(metrics.disk || 0).toFixed(1), "%");
         setAnalyticsValue("services", metrics.services || 0);
         setAnalyticsValue("tasks", metrics.tasks || 0);
+        document.querySelectorAll('[data-analytics-chip="cpu"]').forEach((element) => {
+          element.textContent = `${Number(metrics.cpu || 0).toFixed(1)}% avg`;
+        });
+        document.querySelectorAll('[data-analytics-chip="ram"]').forEach((element) => {
+          element.textContent = `${Number(metrics.ram || 0).toFixed(1)}% avg`;
+        });
         setAnalyticsFill("cpu", metrics.cpu);
         setAnalyticsFill("ram", metrics.ram);
         setAnalyticsFill("disk", metrics.disk);
@@ -1229,6 +1278,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     };
+
+    document.querySelectorAll("[data-analytics-refresh]").forEach((button) => {
+      button.addEventListener("click", updateAnalyticsMetrics);
+    });
 
     updateAnalyticsMetrics();
     window.setInterval(updateAnalyticsMetrics, 15000);
