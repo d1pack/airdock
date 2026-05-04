@@ -112,17 +112,21 @@ def collect_node_images(node: Node) -> list[DockerImageInfo]:
 
 
 def run_node_container_action(node: Node, container_id: str, action: str) -> str:
-    if action not in {"stop", "delete"}:
+    docker_actions = {
+        "stop": "stop",
+        "restart": "restart",
+        "delete": "rm -f",
+    }
+    if action not in docker_actions:
         raise MetricsUnavailableError("Unsupported container action.")
 
     if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}", container_id):
         raise MetricsUnavailableError("Container id is invalid.")
 
-    docker_action = "stop" if action == "stop" else "rm -f"
     output = _run_node_command(
         node,
-        _container_action_command(docker_action, container_id),
-        timeout=12,
+        _container_action_command(docker_actions[action], container_id),
+        timeout=30 if action == "restart" else 12,
     )
 
     if "docker_unavailable=" in output:

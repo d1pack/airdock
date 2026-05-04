@@ -84,7 +84,7 @@
             {% if latest_task %}
               <span class="ad-pipeline-card__started">
                 <i data-lucide="timer" aria-hidden="true"></i>
-                Запущен: {{ latest_task.created_at.strftime('%d.%m.%Y %H:%M') if latest_task.created_at else 'недавно' }}
+                Запущен: {{ latest_task.created_at.strftime('%d.%m.%Y %H:%M') if latest_task.created_at else 'недавно' }} · {{ latest_task.runtime_label }}
               </span>
             {% endif %}
 

@@ -801,6 +801,9 @@ document.addEventListener("DOMContentLoaded", () => {
               <button class="container-action container-action--logs" type="button" title="Показать логи" data-container-logs data-node-id="${escapeHtml(container.node_id)}" data-container-id="${escapeHtml(container.id)}" data-container-name="${escapeHtml(container.name)}" data-node-name="${escapeHtml(container.node_name)}">
                 <i data-lucide="square-terminal" aria-hidden="true"></i>
               </button>
+              <button class="container-action container-action--restart" type="button" title="Перезагрузить" data-container-action="restart" data-node-id="${escapeHtml(container.node_id)}" data-container-id="${escapeHtml(container.id)}" ${isRunning ? "" : "disabled"}>
+                <i data-lucide="rotate-cw" aria-hidden="true"></i>
+              </button>
               <button class="container-action container-action--stop" type="button" title="Остановить" data-container-action="stop" data-node-id="${escapeHtml(container.node_id)}" data-container-id="${escapeHtml(container.id)}" ${isRunning ? "" : "disabled"}>
                 <i data-lucide="circle-stop" aria-hidden="true"></i>
               </button>
@@ -955,6 +958,25 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      const actionLabels = {
+        stop: {
+          success: "Контейнер остановлен",
+          error: "Не удалось остановить контейнер",
+        },
+        restart: {
+          success: "Контейнер перезагружен",
+          error: "Не удалось перезагрузить контейнер",
+        },
+        delete: {
+          success: "Контейнер удален",
+          error: "Не удалось удалить контейнер",
+        },
+      };
+      const labels = actionLabels[action] || {
+        success: "Действие выполнено",
+        error: "Не удалось выполнить действие",
+      };
+
       button.disabled = true;
       try {
         const response = await fetch(`/dashboard/projects/${projectId}/containers/${encodeURIComponent(nodeId)}/${encodeURIComponent(containerId)}/${action}`, {
@@ -972,7 +994,7 @@ document.addEventListener("DOMContentLoaded", () => {
           throw new Error(detail);
         }
         showToast({
-          title: action === "stop" ? "Контейнер остановлен" : "Контейнер удален",
+          title: labels.success,
           message: containerId,
           variant: "success",
           action: "",
@@ -980,7 +1002,7 @@ document.addEventListener("DOMContentLoaded", () => {
         await updateProjectMetrics();
       } catch (error) {
         showToast({
-          title: action === "stop" ? "Не удалось остановить контейнер" : "Не удалось удалить контейнер",
+          title: labels.error,
           message: error.message || "Docker вернул ошибку.",
           href: "/docs/docker-access",
         });

@@ -262,6 +262,27 @@ class Task(Base):
         return value.strftime("%Y-%m-%dT%H:%M") if value else ""
 
     @property
+    def runtime_seconds(self) -> int | None:
+        if not self.started_at:
+            return None
+        finished_at = self.finished_at or datetime.utcnow()
+        return max(0, int((finished_at - self.started_at).total_seconds()))
+
+    @property
+    def runtime_label(self) -> str:
+        seconds = self.runtime_seconds
+        if seconds is None:
+            return "—"
+
+        hours, remainder = divmod(seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        if hours:
+            return f"{hours} ч {minutes:02d} мин {seconds:02d} сек"
+        if minutes:
+            return f"{minutes} мин {seconds:02d} сек"
+        return f"{seconds} сек"
+
+    @property
     def status_label(self) -> str:
         labels = {
             "draft": "Ожидание запуска",

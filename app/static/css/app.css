@@ -3699,6 +3699,14 @@ code {
   box-shadow: 0 12px 24px rgba(241, 201, 134, 0.08);
 }
 
+.container-action--restart {
+  background:
+    linear-gradient(145deg, rgba(129, 118, 255, 0.22), rgba(129, 118, 255, 0.06)),
+    rgba(255, 255, 255, 0.03);
+  color: #c7c2ff;
+  box-shadow: 0 12px 24px rgba(129, 118, 255, 0.1);
+}
+
 .container-action--delete {
   background:
     linear-gradient(145deg, rgba(255, 118, 112, 0.2), rgba(255, 118, 112, 0.055)),
@@ -3722,6 +3730,10 @@ code {
 
 .container-action--stop:hover {
   box-shadow: 0 16px 32px rgba(241, 201, 134, 0.14);
+}
+
+.container-action--restart:hover {
+  box-shadow: 0 16px 32px rgba(129, 118, 255, 0.17);
 }
 
 .container-action--delete:hover {
@@ -12938,5 +12950,99 @@ body.sidebar-collapsed .sidebar-user-card__avatar {
   .ad-pipelines-page .ad-pipelines-create {
     width: 100%;
     min-width: 0;
+  }
+}
+
+/* ===== AirDock stable layout layer =====
+   Keep this block last. It narrows previous broad patches into predictable
+   layout rules and leaves page-scoped CSS free to override app.css. */
+@media (min-width: 981px) {
+  :root {
+    --stable-sidebar-width: 356px;
+    --stable-sidebar-collapsed-width: 88px;
+  }
+
+  .shell {
+    width: 100% !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    display: grid !important;
+    grid-template-columns: var(--stable-sidebar-width) minmax(0, 1fr) !important;
+    gap: 0 !important;
+    overflow: clip !important;
+  }
+
+  .sidebar {
+    position: sticky !important;
+    top: 0 !important;
+    left: auto !important;
+    width: var(--stable-sidebar-width) !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    border-radius: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .content {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    padding: clamp(20px, 1.7vw, 30px) !important;
+    overflow-x: hidden !important;
+    border-radius: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  body.sidebar-collapsed .shell {
+    grid-template-columns: var(--stable-sidebar-collapsed-width) minmax(0, 1fr) !important;
+  }
+
+  body.sidebar-collapsed .sidebar {
+    width: var(--stable-sidebar-collapsed-width) !important;
+  }
+}
+
+.content > * {
+  max-width: 100%;
+}
+
+.analytics-overview,
+.analytics-main-grid,
+.analytics-task-table,
+.dashboard-grid,
+.metric-grid {
+  min-width: 0 !important;
+}
+
+.analytics-panel,
+.analytics-kpi-card,
+.analytics-node,
+.panel,
+.metric-card {
+  min-width: 0 !important;
+}
+
+@media (min-width: 981px) {
+  .analytics-overview {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .analytics-main-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 360px) !important;
+  }
+}
+
+@media (max-width: 1480px) and (min-width: 981px) {
+  .analytics-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .analytics-main-grid {
+    grid-template-columns: 1fr !important;
   }
 }

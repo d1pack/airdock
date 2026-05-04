@@ -289,7 +289,7 @@ async def container_action(
         return JSONResponse({"detail": "Связанный курьер не найден."}, status_code=404)
     if not _can_edit_project(current_user, project):
         return JSONResponse({"detail": "Недостаточно прав для управления контейнером."}, status_code=403)
-    if action not in {"stop", "delete"}:
+    if action not in {"stop", "restart", "delete"}:
         return JSONResponse({"detail": "Действие не поддерживается."}, status_code=400)
 
     try:

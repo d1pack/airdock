@@ -101,6 +101,7 @@
         <span>Создана: {{ task.created_at.strftime("%d.%m.%Y %H:%M:%S") }}</span>
         {% if task.started_at %}<span>Старт: {{ task.started_at.strftime("%d.%m.%Y %H:%M:%S") }}</span>{% endif %}
         {% if task.finished_at %}<span>Финиш: {{ task.finished_at.strftime("%d.%m.%Y %H:%M:%S") }}</span>{% endif %}
+        <span>Время выполнения: {{ task.runtime_label }}</span>
         {% if task.scheduled_at %}
           <span>Запуск МСК: {{ task.scheduled_at_msk.strftime("%d.%m.%Y %H:%M") }}</span>
           <span class="task-countdown" data-task-countdown="{{ task.scheduled_at.isoformat() }}Z">Расчёт таймера...</span>

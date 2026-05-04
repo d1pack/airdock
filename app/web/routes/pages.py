@@ -30,15 +30,16 @@ async def analytics(
     projects = _available_projects(db, current_user)
     nodes = _available_nodes(db, current_user, projects)
     project_ids = [project.id for project in projects]
+    visible_task_types = ("pipeline", "playbook")
 
-    tasks_query = select(Task).order_by(Task.created_at.desc()).limit(6)
+    tasks_query = select(Task).where(Task.task_type.in_(visible_task_types)).order_by(Task.created_at.desc()).limit(6)
     if not can_manage(current_user):
         tasks_query = tasks_query.where(Task.project_id.in_(project_ids) if project_ids else Task.owner_id == current_user.id)
     latest_tasks = db.scalars(tasks_query).all()
 
-    task_total_query = select(func.count(Task.id))
-    task_running_query = select(func.count(Task.id)).where(Task.status == "running")
-    task_failed_query = select(func.count(Task.id)).where(Task.status == "failed")
+    task_total_query = select(func.count(Task.id)).where(Task.task_type.in_(visible_task_types))
+    task_running_query = select(func.count(Task.id)).where(Task.task_type.in_(visible_task_types), Task.status == "running")
+    task_failed_query = select(func.count(Task.id)).where(Task.task_type.in_(visible_task_types), Task.status == "failed")
     if not can_manage(current_user):
         if project_ids:
             task_total_query = task_total_query.where(Task.project_id.in_(project_ids))

@@ -193,7 +193,7 @@
             </span>
           </span>
           <span>{{ task.created_at.strftime("%d.%m.%Y %H:%M") }}</span>
-          <span>—</span>
+          <span>{{ task.runtime_label }}</span>
           <span><i data-lucide="more-vertical" aria-hidden="true"></i></span>
         </a>
       {% else %}
