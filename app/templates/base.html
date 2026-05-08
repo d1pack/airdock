@@ -48,17 +48,18 @@
             <span class="nav__icon"><i data-lucide="workflow" aria-hidden="true"></i></span>
             Пайплайны
           </a>
+          <a class="nav__link {% if active_page == 'chat' %}nav__link--active{% endif %}" href="/dashboard/chat">
+            <span class="nav__icon"><i data-lucide="messages-square" aria-hidden="true"></i></span>
+            Чат
+          </a>
+          <a class="nav__link {% if active_page == 'files' %}nav__link--active{% endif %}" href="/dashboard/files">
+            <span class="nav__icon"><i data-lucide="folder-tree" aria-hidden="true"></i></span>
+            Файловый менеджер
+          </a>
           <a class="nav__link {% if active_page == 'users' %}nav__link--active{% endif %}" href="/dashboard/users/">
             <span class="nav__icon"><i data-lucide="users-round" aria-hidden="true"></i></span>
             Пользователи
           </a>
-
-          {% if current_user and current_user.user_type.can_manage %}
-            <a class="nav__link {% if active_page == 'activity_log' %}nav__link--active{% endif %}" href="/dashboard/admin/activity-log">
-              <span class="nav__icon"><i data-lucide="scroll-text" aria-hidden="true"></i></span>
-              Журнал срабатывания
-            </a>
-          {% endif %}
         </nav>
 
         {% if current_user and current_user.user_type.can_manage %}

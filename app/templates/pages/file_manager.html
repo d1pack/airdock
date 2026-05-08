@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Файловый менеджер - AirDock{% endblock %}
+
+{% block content %}
+  <section class="sftp-page media-page" data-media-manager>
+    <header class="sftp-header">
+      <div>
+        <h1>Файловый менеджер</h1>
+        <p>Локальное media-хранилище рядом с проектом. Файлы остаются на этом сервере в папке <code>media/</code>.</p>
+      </div>
+      <span class="sftp-status sftp-status--connected" data-media-status>
+        <i></i>Локальное хранилище
+      </span>
+    </header>
+
+    <div class="sftp-layout media-layout">
+      <aside class="sftp-sidebar">
+        <form class="sftp-connect-card media-upload-card" data-media-upload-form>
+          <div class="sftp-connect-card__title">
+            <span><i data-lucide="hard-drive-upload" aria-hidden="true"></i></span>
+            <div>
+              <strong>media/</strong>
+              <small data-media-root>Загрузка локальных файлов</small>
+            </div>
+          </div>
+
+          <label class="media-drop-zone">
+            <i data-lucide="upload-cloud" aria-hidden="true"></i>
+            <span>Выберите файл для загрузки</span>
+            <small>Файл будет сохранен рядом с проектом</small>
+            <input name="file" type="file" data-media-file multiple required>
+          </label>
+
+          <button class="button button--primary" type="submit">
+            <i data-lucide="upload" aria-hidden="true"></i>
+            Загрузить в media
+          </button>
+        </form>
+
+        <article class="sftp-tree-card">
+          <div class="sftp-card-title">
+            <span>Хранилище</span>
+            <i data-lucide="folder-tree" aria-hidden="true"></i>
+          </div>
+          <nav class="sftp-tree" aria-label="Локальное хранилище" data-media-tree>
+            <button type="button" class="is-active">
+              <i data-lucide="folder-open" aria-hidden="true"></i>media/
+            </button>
+          </nav>
+        </article>
+      </aside>
+
+      <main class="sftp-panel">
+        <div class="sftp-toolbar">
+          <div class="sftp-breadcrumb" data-media-breadcrumb>
+            <button type="button">project</button>
+            <button type="button">media</button>
+          </div>
+          <div class="sftp-toolbar__actions">
+            <button class="icon-button" type="button" title="Вверх" data-media-up>
+              <i data-lucide="arrow-up" aria-hidden="true"></i>
+            </button>
+            <button class="icon-button" type="button" title="Обновить" data-media-refresh>
+              <i data-lucide="refresh-cw" aria-hidden="true"></i>
+            </button>
+            <button class="icon-button" type="button" title="Новая папка" data-media-new-folder>
+              <i data-lucide="folder-plus" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="sftp-split">
+          <section class="sftp-file-pane">
+            <div class="sftp-file-table" data-media-file-table>
+              <div class="sftp-file-row sftp-file-row--head">
+                <span>Имя</span>
+                <span>Размер</span>
+                <span>Тип</span>
+                <span>Изменен</span>
+              </div>
+              <div class="sftp-file-row media-file-empty">
+                <span><i data-lucide="loader-circle" aria-hidden="true"></i>Загружаю список файлов...</span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </section>
+
+          <aside class="sftp-inspector">
+            <div class="sftp-card-title">
+              <span>Инспектор</span>
+              <i data-lucide="panel-right" aria-hidden="true"></i>
+            </div>
+            <div class="sftp-preview" data-media-preview>
+              <i data-lucide="file-search" aria-hidden="true"></i>
+              <strong>Выберите файл</strong>
+              <p>Здесь появятся размер, ссылка скачивания и быстрые действия.</p>
+            </div>
+            <div class="sftp-quick-actions">
+              <a class="media-action-link is-disabled" href="#" data-media-download>
+                <i data-lucide="download" aria-hidden="true"></i>Скачать
+              </a>
+              <button type="button" disabled data-media-delete>
+                <i data-lucide="trash-2" aria-hidden="true"></i>Удалить
+              </button>
+              <button type="button" disabled data-media-edit>
+                <i data-lucide="file-pen-line" aria-hidden="true"></i>Редактировать
+              </button>
+            </div>
+          </aside>
+        </div>
+
+        <footer class="sftp-console">
+          <div class="sftp-card-title">
+            <span>Журнал media</span>
+            <i data-lucide="terminal" aria-hidden="true"></i>
+          </div>
+          <pre data-media-console>[local] media storage ready</pre>
+        </footer>
+      </main>
+    </div>
+
+    <dialog class="modal media-editor-modal" data-media-editor-dialog>
+      <form class="media-editor-modal__body" method="dialog">
+        <header class="media-editor-modal__header">
+          <div>
+            <strong data-media-editor-title>Редактор</strong>
+            <span data-media-editor-path>media/</span>
+          </div>
+          <button class="icon-button" type="button" title="Закрыть" data-media-editor-close>
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </header>
+        <textarea class="media-editor media-editor--modal" data-media-editor spellcheck="false"></textarea>
+        <footer class="media-editor-modal__footer">
+          <button class="button button--secondary" type="button" data-media-editor-close>
+            <i data-lucide="x" aria-hidden="true"></i>
+            Закрыть
+          </button>
+          <button class="button button--primary" type="button" data-media-save-editor>
+            <i data-lucide="save" aria-hidden="true"></i>
+            Сохранить
+          </button>
+        </footer>
+      </form>
+    </dialog>
+  </section>
+{% endblock %}

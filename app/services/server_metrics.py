@@ -40,6 +40,7 @@ class DockerContainerInfo:
     image: str
     status: str
     state: str
+    ports: str
 
 
 @dataclass(frozen=True)
@@ -65,11 +66,11 @@ def collect_node_containers(node: Node) -> list[DockerContainerInfo]:
 
     containers: list[DockerContainerInfo] = []
     for line in output.splitlines():
-        parts = line.split("|", 3)
-        if len(parts) != 4:
+        parts = line.split("|", 4)
+        if len(parts) != 5:
             continue
 
-        container_id, name, image, status = [part.strip() for part in parts]
+        container_id, name, image, status, ports = [part.strip() for part in parts]
         state = "running" if status.lower().startswith("up") else "stopped"
 
         containers.append(
@@ -79,6 +80,7 @@ def collect_node_containers(node: Node) -> list[DockerContainerInfo]:
                 image=image,
                 status=status,
                 state=state,
+                ports=ports,
             )
         )
 
@@ -475,7 +477,7 @@ if [ -z "$docker_cmd" ]; then
   exit 0
 fi
 
-$docker_cmd ps -a --format '{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}'
+$docker_cmd ps -a --format '{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.Ports}}'
 """
 
 

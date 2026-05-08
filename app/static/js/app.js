@@ -36,6 +36,19 @@ document.addEventListener("DOMContentLoaded", () => {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
+  document.querySelectorAll("[data-char-source]").forEach((field) => {
+    const counter = document.querySelector(`[data-char-count="${field.getAttribute("data-char-source")}"]`);
+    if (!counter) {
+      return;
+    }
+    const limit = Number(field.getAttribute("maxlength")) || 0;
+    const updateCounter = () => {
+      counter.textContent = `${field.value.length} / ${limit}`;
+    };
+    updateCounter();
+    field.addEventListener("input", updateCounter);
+  });
+
   const toastViewport = document.querySelector("[data-toast-viewport]");
   const shownToasts = new Map();
 
@@ -778,6 +791,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       containersRail.innerHTML = containers.map((container) => {
         const isRunning = container.state === "running";
+        const webLinks = Array.isArray(container.web_urls) ? container.web_urls : [];
+        const primaryWebLink = webLinks[0] || null;
+        const portsMeta = webLinks.length
+          ? webLinks.map((link) => `<code>${escapeHtml(link.host_port)}->${escapeHtml(link.container_port)}</code>`).join("")
+          : "";
         return `
           <article class="docker-container-card docker-container-card--${isRunning ? "running" : "stopped"}">
             <div class="docker-container-card__top">
@@ -796,8 +814,14 @@ document.addEventListener("DOMContentLoaded", () => {
               <span>${escapeHtml(container.node_name)}</span>
               <code>${escapeHtml(container.server_ip)}</code>
               <code>${escapeHtml(container.id || "-")}</code>
+              ${portsMeta}
             </div>
             <div class="docker-container-card__actions">
+              ${primaryWebLink ? `
+                <a class="container-action container-action--open" href="${escapeHtml(primaryWebLink.url)}" target="_blank" rel="noopener noreferrer" title="Открыть ${escapeHtml(primaryWebLink.label)}">
+                  <i data-lucide="external-link" aria-hidden="true"></i>
+                </a>
+              ` : ""}
               <button class="container-action container-action--files" type="button" title="Файлы контейнера" data-container-files data-node-id="${escapeHtml(container.node_id)}" data-container-id="${escapeHtml(container.id)}" data-container-name="${escapeHtml(container.name)}" data-node-name="${escapeHtml(container.node_name)}" ${isRunning ? "" : "disabled"}>
                 <i data-lucide="folder-tree" aria-hidden="true"></i>
               </button>
@@ -1574,5 +1598,1194 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updateAnalyticsMetrics();
     window.setInterval(updateAnalyticsMetrics, 15000);
+  }
+
+  const ollamaChat = document.querySelector("[data-ollama-chat]");
+  if (ollamaChat) {
+    const storageKey = "airdock.ollamaServers";
+    const sessionsKey = "airdock.ollamaChatSessions";
+    const activeSessionKey = "airdock.ollamaActiveChat";
+    const serverForm = ollamaChat.querySelector("[data-ollama-server-form]");
+    const serverSelect = ollamaChat.querySelector("[data-ollama-server-select]");
+    const modelSelect = ollamaChat.querySelector("[data-ollama-model-select]");
+    const refreshModelsButton = ollamaChat.querySelector("[data-ollama-refresh-models]");
+    const removeServerButton = ollamaChat.querySelector("[data-ollama-remove-server]");
+    const newChatButton = ollamaChat.querySelector("[data-ollama-new-chat]");
+    const clearChatButton = ollamaChat.querySelector("[data-ollama-clear-chat]");
+    const exportChatButton = ollamaChat.querySelector("[data-ollama-export-chat]");
+    const exportAllButton = ollamaChat.querySelector("[data-ollama-export-all]");
+    const importChatButton = ollamaChat.querySelector("[data-ollama-import-chat]");
+    const importFileInput = ollamaChat.querySelector("[data-ollama-import-file]");
+    const sessionList = ollamaChat.querySelector("[data-ollama-session-list]");
+    const activeTitle = ollamaChat.querySelector("[data-ollama-active-title]");
+    const activeMeta = ollamaChat.querySelector("[data-ollama-active-meta]");
+    const composeForm = ollamaChat.querySelector("[data-ollama-compose]");
+    const messageInput = composeForm?.querySelector("textarea[name='message']");
+    const messagesList = ollamaChat.querySelector("[data-ollama-messages]");
+    const statusLabel = ollamaChat.querySelector("[data-ollama-status]");
+
+    const defaultServers = [{ name: "Локальный Ollama", url: "http://localhost:11434" }];
+    const starterMessage = "Добавьте сервер Ollama или используйте локальный адрес, затем выберите модель.";
+    const thinkingTexts = [
+      "Смотрю на задачу под разными углами...",
+      "Собираю контекст в связную картину...",
+      "Проверяю, где может быть подвох...",
+      "Сравниваю варианты ответа...",
+      "Уточняю ход рассуждения...",
+      "Отбрасываю слабые гипотезы...",
+      "Ищу самый полезный ответ...",
+      "Складываю детали в аккуратный вывод...",
+      "Проверяю формулировки перед ответом...",
+      "Думаю, как сказать это яснее...",
+    ];
+
+    const readServers = () => {
+      try {
+        const parsed = JSON.parse(window.localStorage.getItem(storageKey) || "[]");
+        return Array.isArray(parsed) && parsed.length ? parsed : defaultServers;
+      } catch (error) {
+        return defaultServers;
+      }
+    };
+
+    let servers = readServers();
+    let sessions = [];
+    let activeSessionId = "";
+
+    const writeServers = () => {
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(servers));
+      } catch (error) {
+        // Local storage can be unavailable in private mode.
+      }
+    };
+
+    const uid = () => {
+      if (window.crypto?.randomUUID) {
+        return window.crypto.randomUUID();
+      }
+      return `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    };
+
+    const nowIso = () => new Date().toISOString();
+
+    const compactDate = (value) => {
+      const date = value ? new Date(value) : new Date();
+      if (Number.isNaN(date.getTime())) {
+        return "";
+      }
+      return date.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    };
+
+    const randomThinkingText = (previous = "") => {
+      const variants = thinkingTexts.filter((text) => text !== previous);
+      return variants[Math.floor(Math.random() * variants.length)] || thinkingTexts[0];
+    };
+
+    const chatTitleFrom = (content) => {
+      const title = String(content || "").replace(/\s+/g, " ").trim();
+      return title ? title.slice(0, 48) : "Новый чат";
+    };
+
+    const normalizeSession = (session) => {
+      const createdAt = session?.createdAt || nowIso();
+      const messages = Array.isArray(session?.messages)
+        ? session.messages
+            .filter((message) => message && ["user", "assistant", "system"].includes(message.role) && message.content)
+            .map((message) => ({
+              role: message.role,
+              content: String(message.content),
+              createdAt: message.createdAt || createdAt,
+            }))
+        : [];
+      return {
+        id: String(session?.id || uid()),
+        title: String(session?.title || (messages[0] ? chatTitleFrom(messages[0].content) : "Новый чат")),
+        serverUrl: String(session?.serverUrl || ""),
+        model: String(session?.model || ""),
+        messages,
+        createdAt,
+        updatedAt: session?.updatedAt || createdAt,
+      };
+    };
+
+    const createSession = () => normalizeSession({ id: uid(), title: "Новый чат", createdAt: nowIso(), updatedAt: nowIso() });
+
+    const readSessions = () => {
+      try {
+        const parsed = JSON.parse(window.localStorage.getItem(sessionsKey) || "[]");
+        if (Array.isArray(parsed) && parsed.length) {
+          return parsed.map(normalizeSession);
+        }
+      } catch (error) {
+        // Keep a blank chat if saved history is unreadable.
+      }
+      return [createSession()];
+    };
+
+    const writeSessions = () => {
+      try {
+        window.localStorage.setItem(sessionsKey, JSON.stringify(sessions));
+        window.localStorage.setItem(activeSessionKey, activeSessionId);
+      } catch (error) {
+        showToast({
+          title: "История не сохранена",
+          message: "Браузер не дал записать чат в localStorage.",
+          variant: "error",
+          action: "",
+        });
+      }
+    };
+
+    const currentSession = () => sessions.find((session) => session.id === activeSessionId) || sessions[0];
+
+    const ensureActiveSession = () => {
+      sessions = readSessions();
+      try {
+        activeSessionId = window.localStorage.getItem(activeSessionKey) || "";
+      } catch (error) {
+        activeSessionId = "";
+      }
+      if (!sessions.some((session) => session.id === activeSessionId)) {
+        activeSessionId = sessions[0].id;
+      }
+    };
+
+    const selectedServer = () => servers.find((server) => server.url === serverSelect?.value) || servers[0];
+
+    const setStatus = (text, tone = "muted") => {
+      if (!statusLabel) {
+        return;
+      }
+      statusLabel.classList.toggle("ollama-chat-status--ok", tone === "ok");
+      statusLabel.classList.toggle("ollama-chat-status--error", tone === "error");
+      statusLabel.innerHTML = `<i></i>${escapeHtml(text)}`;
+    };
+
+    const renderSessionList = () => {
+      if (!sessionList) {
+        return;
+      }
+      sessionList.innerHTML = sessions
+        .slice()
+        .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))
+        .map((session) => {
+          const last = session.messages.at(-1);
+          const preview = last ? last.content : "Пустой чат";
+          const count = session.messages.length;
+          return `
+            <article class="ollama-chat-session ${session.id === activeSessionId ? "is-active" : ""}" data-chat-session-id="${escapeHtml(session.id)}">
+              <button class="ollama-chat-session__main" type="button" data-open-chat-session="${escapeHtml(session.id)}">
+                <strong>${escapeHtml(session.title)}</strong>
+                <span>${escapeHtml(preview)}</span>
+                <small>${compactDate(session.updatedAt)} · ${count} сообщ.</small>
+              </button>
+              <button class="ollama-chat-session__delete" type="button" title="Удалить чат" data-delete-chat-session="${escapeHtml(session.id)}">
+                <i data-lucide="x" aria-hidden="true"></i>
+              </button>
+            </article>
+          `;
+        })
+        .join("");
+      if (window.lucide) {
+        window.lucide.createIcons({ nodes: sessionList.querySelectorAll("[data-lucide]") });
+      }
+    };
+
+    const renderActiveHeader = () => {
+      const session = currentSession();
+      if (!session) {
+        return;
+      }
+      if (activeTitle) {
+        activeTitle.textContent = session.title;
+      }
+      if (activeMeta) {
+        const server = servers.find((item) => item.url === session.serverUrl)?.name || selectedServer()?.name || "Ollama";
+        activeMeta.textContent = `${server}${session.model ? ` · ${session.model}` : ""}`;
+      }
+    };
+
+    const renderMessages = () => {
+      const session = currentSession();
+      if (!messagesList || !session) {
+        return;
+      }
+      messagesList.innerHTML = "";
+      if (!session.messages.length) {
+        appendMessage("assistant", starterMessage, false, false);
+      } else {
+        session.messages.forEach((message) => appendMessage(message.role, message.content, false, false, message.createdAt));
+      }
+      messagesList.scrollTop = messagesList.scrollHeight;
+      renderActiveHeader();
+    };
+
+    const persistCurrentSession = () => {
+      const session = currentSession();
+      if (!session) {
+        return;
+      }
+      const server = selectedServer();
+      session.serverUrl = server?.url || session.serverUrl;
+      session.model = modelSelect?.value || session.model;
+      session.updatedAt = nowIso();
+      if (session.title === "Новый чат") {
+        const firstUserMessage = session.messages.find((message) => message.role === "user");
+        if (firstUserMessage) {
+          session.title = chatTitleFrom(firstUserMessage.content);
+        }
+      }
+      writeSessions();
+      renderSessionList();
+      renderActiveHeader();
+    };
+
+    const renderServers = () => {
+      if (!serverSelect) {
+        return;
+      }
+      const current = serverSelect.value;
+      serverSelect.innerHTML = servers.map((server) => (
+        `<option value="${escapeHtml(server.url)}">${escapeHtml(server.name)} - ${escapeHtml(server.url)}</option>`
+      )).join("");
+      if (servers.some((server) => server.url === current)) {
+        serverSelect.value = current;
+      }
+      const session = currentSession();
+      if (session?.serverUrl && servers.some((server) => server.url === session.serverUrl)) {
+        serverSelect.value = session.serverUrl;
+      }
+      if (window.lucide) {
+        window.lucide.createIcons({ nodes: ollamaChat.querySelectorAll("[data-lucide]") });
+      }
+      setStatus(selectedServer() ? "Готов к подключению" : "Сервер не выбран");
+    };
+
+    const renderModels = (models) => {
+      if (!modelSelect) {
+        return;
+      }
+      if (!models.length) {
+        modelSelect.innerHTML = '<option value="">Модели не найдены</option>';
+        return;
+      }
+      modelSelect.innerHTML = models.map((model) => (
+        `<option value="${escapeHtml(model.name)}">${escapeHtml(model.name)}</option>`
+      )).join("");
+      const sessionModel = currentSession()?.model;
+      if (sessionModel && models.some((model) => model.name === sessionModel)) {
+        modelSelect.value = sessionModel;
+      }
+    };
+
+    const appendMessage = (role, content, pending = false, save = true, createdAt = nowIso()) => {
+      if (!messagesList) {
+        return null;
+      }
+      const message = document.createElement("div");
+      message.className = `ollama-message ollama-message--${role}${pending ? " ollama-message--pending" : ""}`;
+      const avatar = role === "user"
+        ? '<span class="ollama-message__avatar ollama-message__avatar--user" aria-hidden="true">Вы</span>'
+        : '<img class="ollama-message__avatar" src="/static/img/ollama-ai-avatar.png" alt="" aria-hidden="true">';
+      message.innerHTML = `
+        ${avatar}
+        <span class="ollama-message__bubble">
+          <strong>${role === "user" ? "Вы" : "Ollama"}</strong>
+          <p>${escapeHtml(content).replaceAll("\n", "<br>")}</p>
+          <time>${compactDate(createdAt)}</time>
+        </span>
+      `;
+      messagesList.appendChild(message);
+      messagesList.scrollTop = messagesList.scrollHeight;
+      if (save) {
+        const session = currentSession();
+        session.messages.push({ role, content, createdAt });
+        persistCurrentSession();
+      }
+      return message;
+    };
+
+    const requestJson = async (url, payload) => {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.detail || `HTTP: ${response.status}`);
+      }
+      return data;
+    };
+
+    const loadModels = async () => {
+      const server = selectedServer();
+      if (!server) {
+        setStatus("Сервер не выбран", "error");
+        return;
+      }
+      refreshModelsButton?.setAttribute("disabled", "disabled");
+      setStatus("Загружаю модели...");
+      try {
+        const data = await requestJson("/dashboard/chat/models", { server_url: server.url });
+        renderModels(data.models || []);
+        persistCurrentSession();
+        setStatus(`Подключено: ${server.name}`, "ok");
+      } catch (error) {
+        setStatus(error.message || "Ошибка подключения", "error");
+        showToast({
+          title: "Ollama недоступен",
+          message: error.message || "Проверьте адрес сервера и запущена ли Ollama.",
+          variant: "error",
+          action: "",
+        });
+      } finally {
+        refreshModelsButton?.removeAttribute("disabled");
+      }
+    };
+
+    serverForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const formData = new FormData(serverForm);
+      const url = String(formData.get("url") || "").trim().replace(/\/+$/, "");
+      const name = String(formData.get("name") || "").trim() || "Ollama";
+      if (!/^https?:\/\/[^ ]+$/i.test(url)) {
+        setStatus("URL должен начинаться с http:// или https://", "error");
+        return;
+      }
+      servers = [{ name, url }, ...servers.filter((server) => server.url !== url)];
+      writeServers();
+      renderServers();
+      serverSelect.value = url;
+      serverForm.reset();
+      loadModels();
+    });
+
+    serverSelect?.addEventListener("change", () => {
+      renderModels([]);
+      persistCurrentSession();
+      loadModels();
+    });
+
+    refreshModelsButton?.addEventListener("click", loadModels);
+
+    modelSelect?.addEventListener("change", persistCurrentSession);
+
+    removeServerButton?.addEventListener("click", () => {
+      const server = selectedServer();
+      if (!server) {
+        return;
+      }
+      servers = servers.filter((item) => item.url !== server.url);
+      if (!servers.length) {
+        servers = defaultServers;
+      }
+      writeServers();
+      renderServers();
+      renderModels([]);
+      loadModels();
+    });
+
+    newChatButton?.addEventListener("click", () => {
+      const session = createSession();
+      sessions.unshift(session);
+      activeSessionId = session.id;
+      writeSessions();
+      renderSessionList();
+      renderMessages();
+      renderServers();
+      loadModels();
+      messageInput?.focus();
+    });
+
+    sessionList?.addEventListener("click", (event) => {
+      const openButton = event.target.closest("[data-open-chat-session]");
+      const deleteButton = event.target.closest("[data-delete-chat-session]");
+      if (openButton) {
+        activeSessionId = openButton.getAttribute("data-open-chat-session");
+        writeSessions();
+        renderSessionList();
+        renderServers();
+        renderMessages();
+        loadModels();
+        return;
+      }
+      if (deleteButton) {
+        const sessionId = deleteButton.getAttribute("data-delete-chat-session");
+        sessions = sessions.filter((session) => session.id !== sessionId);
+        if (!sessions.length) {
+          sessions = [createSession()];
+        }
+        if (activeSessionId === sessionId) {
+          activeSessionId = sessions[0].id;
+        }
+        writeSessions();
+        renderSessionList();
+        renderMessages();
+      }
+    });
+
+    clearChatButton?.addEventListener("click", () => {
+      const session = currentSession();
+      if (!session || !window.confirm("Очистить текущий чат?")) {
+        return;
+      }
+      session.messages = [];
+      session.title = "Новый чат";
+      session.updatedAt = nowIso();
+      writeSessions();
+      renderSessionList();
+      renderMessages();
+    });
+
+    messageInput?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+        composeForm?.requestSubmit();
+      }
+    });
+
+    composeForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const server = selectedServer();
+      const model = modelSelect?.value;
+      const content = messageInput?.value.trim();
+      if (!server || !model || !content) {
+        setStatus("Выберите сервер, модель и введите сообщение", "error");
+        return;
+      }
+
+      const session = currentSession();
+      session.serverUrl = server.url;
+      session.model = model;
+      session.messages.push({ role: "user", content, createdAt: nowIso() });
+      persistCurrentSession();
+      appendMessage("user", content, false, false);
+      messageInput.value = "";
+      const pendingMessage = appendMessage("assistant", randomThinkingText(), true, false);
+      let thinkingTimer = window.setInterval(() => {
+        const textNode = pendingMessage?.querySelector("p");
+        if (!textNode) {
+          return;
+        }
+        textNode.textContent = randomThinkingText(textNode.textContent);
+      }, 1800);
+      composeForm.querySelector("button[type='submit']")?.setAttribute("disabled", "disabled");
+      setStatus("Ollama отвечает...");
+
+      try {
+        const data = await requestJson("/dashboard/chat/message", {
+          server_url: server.url,
+          model,
+          messages: session.messages,
+        });
+        const answer = data.message || "Модель вернула пустой ответ.";
+        session.messages.push({ role: "assistant", content: answer, createdAt: nowIso() });
+        persistCurrentSession();
+        window.clearInterval(thinkingTimer);
+        thinkingTimer = null;
+        if (pendingMessage) {
+          pendingMessage.classList.remove("ollama-message--pending");
+          pendingMessage.querySelector("p").innerHTML = escapeHtml(answer).replaceAll("\n", "<br>");
+          pendingMessage.querySelector("time").textContent = compactDate(nowIso());
+        }
+        setStatus(`Ответ получен: ${model}`, "ok");
+      } catch (error) {
+        if (thinkingTimer) {
+          window.clearInterval(thinkingTimer);
+        }
+        session.messages.pop();
+        persistCurrentSession();
+        pendingMessage?.remove();
+        setStatus(error.message || "Ошибка запроса", "error");
+        showToast({
+          title: "Не удалось получить ответ",
+          message: error.message || "Ollama не вернул ответ.",
+          variant: "error",
+          action: "",
+        });
+      } finally {
+        if (thinkingTimer) {
+          window.clearInterval(thinkingTimer);
+        }
+        composeForm.querySelector("button[type='submit']")?.removeAttribute("disabled");
+        messageInput?.focus();
+      }
+    });
+
+    const downloadJson = (filename, payload) => {
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    };
+
+    exportChatButton?.addEventListener("click", () => {
+      const session = currentSession();
+      if (!session) {
+        return;
+      }
+      downloadJson(`airdock-chat-${session.title.replace(/[^\p{L}\p{N}]+/gu, "-").slice(0, 36) || session.id}.json`, {
+        type: "airdock-ollama-chats",
+        version: 1,
+        exportedAt: nowIso(),
+        sessions: [session],
+      });
+    });
+
+    exportAllButton?.addEventListener("click", () => {
+      downloadJson("airdock-ollama-chats.json", {
+        type: "airdock-ollama-chats",
+        version: 1,
+        exportedAt: nowIso(),
+        sessions,
+      });
+    });
+
+    importChatButton?.addEventListener("click", () => importFileInput?.click());
+
+    importFileInput?.addEventListener("change", async () => {
+      const file = importFileInput.files?.[0];
+      if (!file) {
+        return;
+      }
+      try {
+        const payload = JSON.parse(await file.text());
+        const incoming = Array.isArray(payload?.sessions) ? payload.sessions : Array.isArray(payload) ? payload : [];
+        const usedIds = new Set(sessions.map((session) => session.id));
+        const imported = incoming.map((session) => {
+          const normalized = normalizeSession(session);
+          if (usedIds.has(normalized.id)) {
+            normalized.id = uid();
+          }
+          usedIds.add(normalized.id);
+          return normalized;
+        });
+        if (!imported.length) {
+          throw new Error("В файле нет чатов AirDock.");
+        }
+        sessions = [...imported, ...sessions];
+        activeSessionId = imported[0].id;
+        writeSessions();
+        renderSessionList();
+        renderServers();
+        renderMessages();
+        loadModels();
+        showToast({
+          title: "Чаты импортированы",
+          message: `Добавлено: ${imported.length}`,
+          variant: "success",
+          action: "",
+        });
+      } catch (error) {
+        showToast({
+          title: "Не удалось импортировать",
+          message: error.message || "Проверьте JSON-файл.",
+          variant: "error",
+          action: "",
+        });
+      } finally {
+        importFileInput.value = "";
+      }
+    });
+
+    ensureActiveSession();
+    renderServers();
+    renderSessionList();
+    renderMessages();
+    loadModels();
+  }
+
+  const mediaManager = document.querySelector("[data-media-manager]");
+  if (mediaManager) {
+    const uploadForm = mediaManager.querySelector("[data-media-upload-form]");
+    const fileInput = mediaManager.querySelector("[data-media-file]");
+    const fileTable = mediaManager.querySelector("[data-media-file-table]");
+    const preview = mediaManager.querySelector("[data-media-preview]");
+    const downloadLink = mediaManager.querySelector("[data-media-download]");
+    const deleteButton = mediaManager.querySelector("[data-media-delete]");
+    const editButton = mediaManager.querySelector("[data-media-edit]");
+    const consoleOutput = mediaManager.querySelector("[data-media-console]");
+    const status = mediaManager.querySelector("[data-media-status]");
+    const rootLabel = mediaManager.querySelector("[data-media-root]");
+    const mediaTree = mediaManager.querySelector("[data-media-tree]");
+    const uploadButton = uploadForm?.querySelector('button[type="submit"]');
+    const editorDialog = mediaManager.querySelector("[data-media-editor-dialog]");
+    const editorTextarea = mediaManager.querySelector("[data-media-editor]");
+    const editorTitle = mediaManager.querySelector("[data-media-editor-title]");
+    const editorPath = mediaManager.querySelector("[data-media-editor-path]");
+    let selectedEntry = null;
+    let currentPath = "";
+    let draggedMediaPath = "";
+
+    const writeMediaLog = (line) => {
+      if (!consoleOutput) {
+        return;
+      }
+      const timestamp = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      consoleOutput.textContent = `${consoleOutput.textContent}\n[${timestamp}] ${line}`.trim();
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    };
+
+    const setMediaStatus = (text) => {
+      if (status) {
+        status.innerHTML = `<i></i>${escapeHtml(text)}`;
+      }
+    };
+
+    const formatBytes = (bytes) => {
+      const value = Number(bytes || 0);
+      if (value < 1024) {
+        return `${value} B`;
+      }
+      if (value < 1024 * 1024) {
+        return `${(value / 1024).toFixed(1)} KB`;
+      }
+      if (value < 1024 * 1024 * 1024) {
+        return `${(value / 1024 / 1024).toFixed(1)} MB`;
+      }
+      return `${(value / 1024 / 1024 / 1024).toFixed(1)} GB`;
+    };
+
+    const fileExtension = (name) => String(name || "").split(".").pop()?.toLowerCase() || "";
+
+    const fileKind = (name) => {
+      const ext = fileExtension(name);
+      if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) {
+        return "image";
+      }
+      if (["mp4", "webm", "mov", "mkv"].includes(ext)) {
+        return "video";
+      }
+      if (["mp3", "wav", "ogg", "flac"].includes(ext)) {
+        return "audio";
+      }
+      if (["zip", "tar", "gz", "rar", "7z"].includes(ext)) {
+        return "archive";
+      }
+      return ext || "file";
+    };
+
+    const fileIcon = (kind) => {
+      if (kind === "image") return "image";
+      if (kind === "video") return "film";
+      if (kind === "audio") return "music";
+      if (kind === "archive") return "archive";
+      return "file";
+    };
+
+    const isImageFile = (name) => ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "ico"].includes(fileExtension(name));
+
+    const renderBreadcrumb = () => {
+      const breadcrumb = mediaManager.querySelector("[data-media-breadcrumb]");
+      if (!breadcrumb) {
+        return;
+      }
+      const parts = currentPath.split("/").filter(Boolean);
+      let accumulated = "";
+      breadcrumb.innerHTML = [
+        '<button type="button" data-media-breadcrumb-path="">media</button>',
+        ...parts.map((part) => {
+          accumulated = accumulated ? `${accumulated}/${part}` : part;
+          return `<button type="button" data-media-breadcrumb-path="${escapeHtml(accumulated)}">${escapeHtml(part)}</button>`;
+        }),
+      ].join("");
+    };
+
+    const renderPreview = (file) => {
+      selectedEntry = file;
+      if (!preview || !downloadLink || !deleteButton) {
+        return;
+      }
+      if (!file) {
+        preview.innerHTML = `
+          <i data-lucide="file-search" aria-hidden="true"></i>
+          <strong>Выберите файл</strong>
+          <p>Здесь появятся размер, ссылка скачивания и быстрые действия.</p>
+        `;
+        downloadLink.href = "#";
+        downloadLink.classList.add("is-disabled");
+        deleteButton.disabled = true;
+        if (editButton) {
+          editButton.disabled = true;
+          editButton.hidden = true;
+        }
+        if (window.lucide) {
+          window.lucide.createIcons({ nodes: preview.querySelectorAll("[data-lucide]") });
+        }
+        return;
+      }
+      const isFolder = file.type === "folder";
+      const kind = isFolder ? "folder" : fileKind(file.name);
+      const isImage = kind === "image" && !file.name.toLowerCase().endsWith(".svg");
+      preview.innerHTML = `
+        ${isImage ? `<img class="media-preview-image" src="${escapeHtml(file.download_url)}" alt="">` : `<i data-lucide="${isFolder ? "folder" : fileIcon(kind)}" aria-hidden="true"></i>`}
+        <strong>${escapeHtml(file.name)}</strong>
+        <p>${isFolder ? "Папка" : `${escapeHtml(formatBytes(file.size))} · ${escapeHtml(kind)}`}</p>
+        <code>media/${escapeHtml(file.path || file.name)}</code>
+      `;
+      downloadLink.href = isFolder ? "#" : file.download_url;
+      downloadLink.classList.toggle("is-disabled", isFolder);
+      deleteButton.disabled = false;
+      if (editButton) {
+        const canEdit = !isFolder && !isImageFile(file.name) && isEditableFile(file.name);
+        editButton.disabled = !canEdit;
+        editButton.hidden = !canEdit;
+      }
+      if (window.lucide) {
+        window.lucide.createIcons({ nodes: preview.querySelectorAll("[data-lucide]") });
+      }
+    };
+
+    const isEditableFile = (name) => {
+      const ext = String(name || "").split(".").pop()?.toLowerCase();
+      if (isImageFile(name)) {
+        return false;
+      }
+      return [
+        "txt", "md", "json", "yaml", "yml", "toml", "ini", "env", "conf", "cfg", "log",
+        "py", "js", "ts", "css", "html", "xml", "sh", "bat", "ps1", "sql",
+      ].includes(ext) || String(name || "").startsWith(".");
+    };
+
+    const renderFiles = (entries) => {
+      if (!fileTable) {
+        return;
+      }
+      const head = `
+        <div class="sftp-file-row sftp-file-row--head">
+          <span>Имя</span>
+          <span>Размер</span>
+          <span>Тип</span>
+          <span>Изменен</span>
+        </div>
+      `;
+      if (!entries.length) {
+        fileTable.innerHTML = `${head}
+          <div class="sftp-file-row media-file-empty">
+            <span><i data-lucide="folder-open" aria-hidden="true"></i>Эта папка пуста</span>
+            <span></span><span></span><span></span>
+          </div>
+        `;
+      } else {
+        fileTable.innerHTML = head + entries.map((file) => {
+          const isFolder = file.type === "folder";
+          const kind = isFolder ? "folder" : fileKind(file.name);
+          return `
+            <button class="sftp-file-row ${isFolder ? "sftp-file-row--folder" : ""}" type="button" draggable="true" data-media-entry-type="${escapeHtml(file.type)}" data-media-entry-path="${escapeHtml(file.path)}">
+              <span><i data-lucide="${isFolder ? "folder" : fileIcon(kind)}" aria-hidden="true"></i>${escapeHtml(file.name)}</span>
+              <span>${isFolder ? "--" : escapeHtml(formatBytes(file.size))}</span>
+              <span>${escapeHtml(kind)}</span>
+              <span>${new Date(Number(file.modified_at) * 1000).toLocaleString("ru-RU")}</span>
+            </button>
+          `;
+        }).join("");
+      }
+      fileTable.dataset.files = JSON.stringify(entries);
+      if (window.lucide) {
+        window.lucide.createIcons({ nodes: fileTable.querySelectorAll("[data-lucide]") });
+      }
+    };
+
+    const renderTree = (entries) => {
+      if (!mediaTree) {
+        return;
+      }
+      const parentPath = currentPath.split("/").filter(Boolean).slice(0, -1).join("/");
+      const currentLabel = currentPath ? `media/${currentPath}` : "media/";
+      mediaTree.innerHTML = `
+        <button type="button" class="is-active" data-media-drop-folder="true" data-media-tree-path="${escapeHtml(currentPath)}">
+          <i data-lucide="folder-open" aria-hidden="true"></i>${escapeHtml(currentLabel)}
+        </button>
+        ${currentPath ? `
+          <button type="button" data-media-drop-folder="true" data-media-tree-path="${escapeHtml(parentPath)}">
+            <i data-lucide="corner-up-left" aria-hidden="true"></i>..
+          </button>
+        ` : ""}
+        ${entries.map((entry) => `
+          <button type="button" class="${entry.path === selectedEntry?.path ? "is-selected" : ""}" ${entry.type === "folder" ? 'data-media-drop-folder="true"' : ""} data-media-tree-${entry.type === "folder" ? "path" : "file"}="${escapeHtml(entry.path)}">
+            <i data-lucide="${entry.type === "folder" ? "folder" : fileIcon(fileKind(entry.name))}" aria-hidden="true"></i>${escapeHtml(entry.name)}
+          </button>
+        `).join("")}
+      `;
+      if (window.lucide) {
+        window.lucide.createIcons({ nodes: mediaTree.querySelectorAll("[data-lucide]") });
+      }
+    };
+
+    const loadMediaFiles = async () => {
+      try {
+        setMediaStatus("Обновляю media/");
+        const response = await fetch(`/dashboard/files/media/list?path=${encodeURIComponent(currentPath)}`, { headers: { Accept: "application/json" }, cache: "no-store" });
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.detail || `HTTP: ${response.status}`);
+        }
+        currentPath = payload.path || "";
+        renderBreadcrumb();
+        if (rootLabel) {
+          rootLabel.textContent = currentPath ? `media/${currentPath}` : (payload.root || "media/");
+        }
+        const entries = payload.entries || payload.files || [];
+        renderFiles(entries);
+        renderTree(entries);
+        renderPreview(null);
+        setMediaStatus(`${entries.length} объектов`);
+        writeMediaLog(`list media/${currentPath} (${entries.length})`);
+      } catch (error) {
+        setMediaStatus("Ошибка чтения");
+        writeMediaLog(`error: ${error.message || "media list failed"}`);
+      }
+    };
+
+    const uploadFiles = async (files) => {
+      const fileList = Array.from(files || []);
+      if (!fileList.length) {
+        return;
+      }
+      setMediaStatus(`Загружаю: ${fileList.length}`);
+      for (const file of fileList) {
+        const formData = new FormData();
+        formData.append("path", currentPath);
+        formData.append("file", file);
+        try {
+          const response = await fetch("/dashboard/files/media/upload", {
+            method: "POST",
+            headers: { Accept: "application/json" },
+            body: formData,
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.detail || `HTTP: ${response.status}`);
+          }
+          writeMediaLog(`upload media/${payload.path || payload.name}`);
+        } catch (error) {
+          writeMediaLog(`upload ${file.name} error: ${error.message || "failed"}`);
+        }
+      }
+      uploadForm?.reset();
+      await loadMediaFiles();
+    };
+
+    const uploadSelectedFile = async () => {
+      const files = fileInput?.files;
+      if (!files?.length) {
+        fileInput?.click();
+        return;
+      }
+      await uploadFiles(files);
+    };
+
+    const openEditor = async () => {
+      if (!selectedEntry || selectedEntry.type === "folder" || !isEditableFile(selectedEntry.name)) {
+        return;
+      }
+      const formData = new FormData();
+      try {
+        setMediaStatus("Открываю редактор");
+        const response = await fetch(`/dashboard/files/media/content?path=${encodeURIComponent(selectedEntry.path)}`, {
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.detail || `HTTP: ${response.status}`);
+        }
+        if (editorTitle) {
+          editorTitle.textContent = selectedEntry.name;
+        }
+        if (editorPath) {
+          editorPath.textContent = `media/${selectedEntry.path}`;
+        }
+        if (editorTextarea) {
+          editorTextarea.value = payload.content || "";
+        }
+        if (window.lucide) {
+          window.lucide.createIcons({ nodes: editorDialog.querySelectorAll("[data-lucide]") });
+        }
+        editorDialog?.showModal();
+        editorTextarea?.focus();
+        writeMediaLog(`edit media/${selectedEntry.path}`);
+      } catch (error) {
+        setMediaStatus("Редактор недоступен");
+        writeMediaLog(`edit error: ${error.message || "failed"}`);
+      }
+    };
+
+    uploadForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      uploadSelectedFile();
+    });
+
+    uploadButton?.addEventListener("click", (event) => {
+      if (!fileInput?.files?.length) {
+        event.preventDefault();
+        fileInput?.click();
+      }
+    });
+
+    fileInput?.addEventListener("change", () => {
+      if (fileInput.files?.length) {
+        uploadSelectedFile();
+      }
+    });
+
+    const hasDraggedFiles = (event) => Array.from(event.dataTransfer?.types || []).includes("Files");
+
+    mediaManager.addEventListener("dragenter", (event) => {
+      if (!hasDraggedFiles(event)) {
+        return;
+      }
+      event.preventDefault();
+      mediaManager.classList.add("media-page--dragging");
+    });
+
+    mediaManager.addEventListener("dragover", (event) => {
+      if (!hasDraggedFiles(event)) {
+        return;
+      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      mediaManager.classList.add("media-page--dragging");
+    });
+
+    mediaManager.addEventListener("dragleave", (event) => {
+      if (!mediaManager.contains(event.relatedTarget)) {
+        mediaManager.classList.remove("media-page--dragging");
+      }
+    });
+
+    mediaManager.addEventListener("drop", async (event) => {
+      event.preventDefault();
+      mediaManager.classList.remove("media-page--dragging");
+      if (!event.dataTransfer?.files?.length) {
+        return;
+      }
+      await uploadFiles(event.dataTransfer.files);
+    });
+
+    fileTable?.addEventListener("click", (event) => {
+      const row = event.target.closest("[data-media-entry-path]");
+      if (!row) {
+        return;
+      }
+      const files = JSON.parse(fileTable.dataset.files || "[]");
+      const file = files.find((item) => item.path === row.getAttribute("data-media-entry-path"));
+      if (!file) {
+        return;
+      }
+      fileTable.querySelectorAll(".sftp-file-row.is-selected").forEach((item) => item.classList.remove("is-selected"));
+      row.classList.add("is-selected");
+      renderPreview(file);
+      renderTree(JSON.parse(fileTable.dataset.files || "[]"));
+      writeMediaLog(`select media/${file.path}`);
+    });
+
+    mediaTree?.addEventListener("click", async (event) => {
+      const folderButton = event.target.closest("[data-media-tree-path]");
+      const fileButton = event.target.closest("[data-media-tree-file]");
+      if (folderButton) {
+        currentPath = folderButton.getAttribute("data-media-tree-path") || "";
+        await loadMediaFiles();
+        return;
+      }
+      if (fileButton) {
+        const entries = JSON.parse(fileTable?.dataset.files || "[]");
+        const entry = entries.find((item) => item.path === fileButton.getAttribute("data-media-tree-file"));
+        if (!entry) {
+          return;
+        }
+        renderPreview(entry);
+        renderTree(entries);
+        writeMediaLog(`select media/${entry.path}`);
+      }
+    });
+
+    fileTable?.addEventListener("dblclick", async (event) => {
+      const row = event.target.closest("[data-media-entry-path]");
+      if (!row) {
+        return;
+      }
+      const entries = JSON.parse(fileTable.dataset.files || "[]");
+      const entry = entries.find((item) => item.path === row.getAttribute("data-media-entry-path"));
+      if (entry?.type !== "folder") {
+        return;
+      }
+      currentPath = entry.path;
+      await loadMediaFiles();
+    });
+
+    const moveEntry = async (source, targetDir) => {
+      if (!source || source === targetDir) {
+        return;
+      }
+      try {
+        const response = await fetch("/dashboard/files/media/move", {
+          method: "POST",
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({ source, target_dir: targetDir }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.detail || `HTTP: ${response.status}`);
+        }
+        writeMediaLog(`move media/${source} -> media/${targetDir || ""}`);
+        await loadMediaFiles();
+      } catch (error) {
+        writeMediaLog(`move error: ${error.message || "failed"}`);
+      }
+    };
+
+    fileTable?.addEventListener("dragstart", (event) => {
+      const row = event.target.closest("[data-media-entry-path]");
+      if (!row) {
+        return;
+      }
+      draggedMediaPath = row.getAttribute("data-media-entry-path") || "";
+      event.dataTransfer.setData("text/plain", draggedMediaPath);
+      event.dataTransfer.effectAllowed = "move";
+      row.classList.add("is-dragging");
+    });
+
+    fileTable?.addEventListener("dragend", () => {
+      draggedMediaPath = "";
+      fileTable.querySelectorAll(".is-dragging, .is-drop-target").forEach((row) => row.classList.remove("is-dragging", "is-drop-target"));
+      mediaTree?.querySelectorAll(".is-drop-target").forEach((row) => row.classList.remove("is-drop-target"));
+    });
+
+    mediaManager.addEventListener("dragover", (event) => {
+      const sourcePath = draggedMediaPath;
+      const folderTarget = event.target.closest('[data-media-entry-type="folder"], [data-media-drop-folder], [data-media-breadcrumb-path], [data-media-up]');
+      if (!sourcePath || !folderTarget) {
+        return;
+      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      folderTarget.classList.add("is-drop-target");
+    });
+
+    mediaManager.addEventListener("dragleave", (event) => {
+      const target = event.target.closest?.(".is-drop-target");
+      if (target && !target.contains(event.relatedTarget)) {
+        target.classList.remove("is-drop-target");
+      }
+    });
+
+    mediaManager.addEventListener("drop", async (event) => {
+      const sourcePath = draggedMediaPath;
+      const folderTarget = event.target.closest('[data-media-entry-type="folder"], [data-media-drop-folder], [data-media-breadcrumb-path], [data-media-up]');
+      if (!sourcePath || !folderTarget) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const parentPath = currentPath.split("/").filter(Boolean).slice(0, -1).join("/");
+      const targetDir = folderTarget.hasAttribute("data-media-up")
+        ? parentPath
+        : folderTarget.getAttribute("data-media-entry-path") || folderTarget.getAttribute("data-media-tree-path") || folderTarget.getAttribute("data-media-breadcrumb-path") || "";
+      await moveEntry(sourcePath, targetDir);
+    });
+
+    mediaManager.querySelector("[data-media-refresh]")?.addEventListener("click", loadMediaFiles);
+
+    mediaManager.querySelector("[data-media-up]")?.addEventListener("click", async () => {
+      const parts = currentPath.split("/").filter(Boolean);
+      parts.pop();
+      currentPath = parts.join("/");
+      await loadMediaFiles();
+    });
+
+    mediaManager.querySelector("[data-media-new-folder]")?.addEventListener("click", async () => {
+      const name = window.prompt("Название новой папки");
+      if (!name) {
+        return;
+      }
+      try {
+        const response = await fetch("/dashboard/files/media/folder", {
+          method: "POST",
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({ path: currentPath, name }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.detail || `HTTP: ${response.status}`);
+        }
+        writeMediaLog(`mkdir media/${payload.path}`);
+        await loadMediaFiles();
+      } catch (error) {
+        writeMediaLog(`mkdir error: ${error.message || "failed"}`);
+      }
+    });
+
+    mediaManager.querySelector("[data-media-breadcrumb]")?.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-media-breadcrumb-path]");
+      if (!button) {
+        return;
+      }
+      currentPath = button.getAttribute("data-media-breadcrumb-path") || "";
+      await loadMediaFiles();
+    });
+
+    deleteButton?.addEventListener("click", async () => {
+      if (!selectedEntry || !window.confirm(`Удалить ${selectedEntry.name}?`)) {
+        return;
+      }
+      try {
+        const response = await fetch("/dashboard/files/media/delete", {
+          method: "POST",
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({ path: selectedEntry.path }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.detail || `HTTP: ${response.status}`);
+        }
+        writeMediaLog(`delete media/${selectedEntry.path}`);
+        await loadMediaFiles();
+      } catch (error) {
+        writeMediaLog(`delete error: ${error.message || "failed"}`);
+      }
+    });
+
+    editButton?.addEventListener("click", openEditor);
+
+    mediaManager.querySelectorAll("[data-media-editor-close]").forEach((button) => {
+      button.addEventListener("click", () => editorDialog?.close());
+    });
+
+    editorDialog?.addEventListener("click", (event) => {
+      if (event.target === editorDialog) {
+        editorDialog.close();
+      }
+    });
+
+    mediaManager.querySelector("[data-media-save-editor]")?.addEventListener("click", async () => {
+      if (!selectedEntry || !editorTextarea) {
+        return;
+      }
+      try {
+        const response = await fetch("/dashboard/files/media/content", {
+          method: "POST",
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({ path: selectedEntry.path, content: editorTextarea.value || "" }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.detail || `HTTP: ${response.status}`);
+        }
+        writeMediaLog(`save media/${selectedEntry.path}`);
+        editorDialog?.close();
+        await loadMediaFiles();
+      } catch (error) {
+        writeMediaLog(`save error: ${error.message || "failed"}`);
+      }
+    });
+
+    loadMediaFiles();
   }
 });

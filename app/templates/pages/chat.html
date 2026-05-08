@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Чат - AirDock{% endblock %}
+
+{% block content %}
+  <section class="ollama-chat-page" data-ollama-chat>
+    <header class="ollama-chat-header">
+      <div>
+        <h1>Чат</h1>
+        <p>Подключите Ollama, возвращайтесь к сохраненным диалогам и переносите чаты через экспорт или импорт JSON.</p>
+      </div>
+      <span class="ollama-chat-status" data-ollama-status>
+        <i></i>Сервер не выбран
+      </span>
+    </header>
+
+    <div class="ollama-chat-layout">
+      <aside class="ollama-chat-sessions" aria-label="Сохраненные чаты">
+        <div class="ollama-chat-sessions__header">
+          <div>
+            <h2>Чаты</h2>
+            <p>История хранится в этом браузере</p>
+          </div>
+          <button class="icon-button" type="button" title="Новый чат" data-ollama-new-chat>
+            <i data-lucide="plus" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="ollama-chat-session-list" data-ollama-session-list></div>
+
+        <div class="ollama-chat-import-export">
+          <button class="button button--secondary" type="button" data-ollama-export-chat>
+            <i data-lucide="download" aria-hidden="true"></i>
+            Экспорт
+          </button>
+          <button class="button button--secondary" type="button" data-ollama-export-all>
+            <i data-lucide="archive" aria-hidden="true"></i>
+            Все
+          </button>
+          <button class="button button--secondary" type="button" data-ollama-import-chat>
+            <i data-lucide="upload" aria-hidden="true"></i>
+            Импорт
+          </button>
+          <input type="file" accept="application/json,.json" data-ollama-import-file hidden>
+        </div>
+      </aside>
+
+      <article class="ollama-chat-panel">
+        <div class="ollama-chat-panel__bar">
+          <img class="ollama-chat-panel__avatar" src="/static/img/ollama-ai-avatar.png" alt="" aria-hidden="true">
+          <div>
+            <strong data-ollama-active-title>Новый чат</strong>
+            <span data-ollama-active-meta>Ollama</span>
+          </div>
+          <button class="icon-button" type="button" title="Очистить текущий чат" data-ollama-clear-chat>
+            <i data-lucide="eraser" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="ollama-chat-messages" data-ollama-messages aria-live="polite">
+          <div class="ollama-message ollama-message--assistant">
+            <strong>AirDock</strong>
+            <p>Добавьте сервер Ollama или используйте локальный адрес, затем выберите модель.</p>
+          </div>
+        </div>
+
+        <form class="ollama-compose" data-ollama-compose>
+          <textarea name="message" rows="2" placeholder="Сообщение" required></textarea>
+          <button class="icon-button ollama-compose__send" type="submit" title="Отправить">
+            <i data-lucide="send" aria-hidden="true"></i>
+          </button>
+        </form>
+      </article>
+
+      <aside class="ollama-chat-settings" aria-label="Настройки Ollama">
+        <div class="ollama-chat-settings__header">
+          <span><i data-lucide="server" aria-hidden="true"></i></span>
+          <div>
+            <h2>Ollama</h2>
+            <p>Например: http://localhost:11434</p>
+          </div>
+        </div>
+
+        <form class="ollama-server-form" data-ollama-server-form>
+          <label>
+            <span>Название</span>
+            <input name="name" placeholder="Локальный Ollama" autocomplete="off">
+          </label>
+          <label>
+            <span>URL сервера</span>
+            <input name="url" type="url" placeholder="http://localhost:11434" autocomplete="off" required>
+          </label>
+          <button class="button button--primary" type="submit">
+            <i data-lucide="plus" aria-hidden="true"></i>
+            Добавить сервер
+          </button>
+        </form>
+
+        <label class="ollama-chat-field">
+          <span>Сервер</span>
+          <select data-native-select data-ollama-server-select></select>
+        </label>
+
+        <div class="ollama-chat-actions">
+          <button class="button button--secondary" type="button" data-ollama-refresh-models>
+            <i data-lucide="refresh-cw" aria-hidden="true"></i>
+            Модели
+          </button>
+          <button class="button button--secondary" type="button" data-ollama-remove-server>
+            <i data-lucide="trash-2" aria-hidden="true"></i>
+            Удалить
+          </button>
+        </div>
+
+        <label class="ollama-chat-field">
+          <span>Модель</span>
+          <select data-native-select data-ollama-model-select>
+            <option value="">Сначала загрузите модели</option>
+          </select>
+        </label>
+      </aside>
+    </div>
+  </section>
+{% endblock %}

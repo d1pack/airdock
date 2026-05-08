@@ -3,71 +3,90 @@
 {% block title %}Проекты - Airdock{% endblock %}
 
 {% block content %}
-  <header class="page-header">
-    <div>
-      <p class="eyebrow">Рабочие пространства</p>
-      <h1>Проекты</h1>
-    </div>
-    <div class="live-pill">Всего: {{ projects|length }}</div>
-  </header>
+  <section class="projects-page">
+    <header class="projects-page__header">
+      <div>
+        <h1>Проекты</h1>
+        <p>Управляйте рабочими пространствами и их инфраструктурными окружениями.</p>
+      </div>
+      <div class="projects-page__count">Всего: {{ projects|length }}</div>
+    </header>
 
-  {% if error == "forbidden" %}
-    <section class="alert">У вас нет доступа к этому проекту.</section>
-  {% elif error == "duplicate" %}
-    <section class="alert">Проект с таким именем уже существует.</section>
-  {% elif error == "missing" %}
-    <section class="alert">Проект не найден.</section>
-  {% endif %}
+    {% if error == "forbidden" %}
+      <section class="alert">У вас нет доступа к этому проекту.</section>
+    {% elif error == "duplicate" %}
+      <section class="alert">Проект с таким именем уже существует.</section>
+    {% elif error == "missing" %}
+      <section class="alert">Проект не найден.</section>
+    {% endif %}
 
-  <section class="management-grid">
-    <div class="project-grid">
-      {% for project in projects %}
-        <a class="project-card project-card--{{ project.status }}" href="/dashboard/projects/{{ project.id }}">
-          <div class="project-card__icon">{{ project.icon }}</div>
-          <div class="project-card__body">
-            <div class="project-card__header">
+    <div class="projects-page__layout">
+      <div class="projects-list">
+        {% for project in projects %}
+          <a class="projects-list-card projects-list-card--{{ project.status }}" href="/dashboard/projects/{{ project.id }}">
+            <div class="projects-list-card__icon">{{ project.icon }}</div>
+            <div class="projects-list-card__main">
               <h2>{{ project.name }}</h2>
-              <span class="runner-status runner-status--{{ 'up' if project.status == 'active' else 'down' }}">
+              <p>{{ project.description or "Описание не указано." }}</p>
+              <div class="projects-list-card__badges">
+                <span><i data-lucide="users" aria-hidden="true"></i>{{ project.users|length }} пользователей</span>
+                <span><i data-lucide="server" aria-hidden="true"></i>{{ project.nodes|length }} курьеров</span>
+              </div>
+            </div>
+            <div class="projects-list-card__side">
+              <span class="projects-status projects-status--{{ project.status }}">
                 <i></i>{{ project.status_label }}
               </span>
+              <small>Создан<br>{{ project.created_at.strftime("%d.%m.%Y, %H:%M") }}</small>
             </div>
-            <p>{{ project.description or "Описание не указано." }}</p>
-            <div class="runner-card__meta">
-              <span>{{ project.users|length }} пользователей</span>
-              <span>{{ project.nodes|length }} курьеров</span>
-            </div>
-          </div>
-        </a>
-      {% else %}
-        <article class="panel empty-panel">Проекты пока не созданы.</article>
-      {% endfor %}
-    </div>
+            <i class="projects-list-card__menu" data-lucide="more-vertical" aria-hidden="true"></i>
+          </a>
+        {% else %}
+          <article class="projects-empty">Проекты пока не созданы.</article>
+        {% endfor %}
 
-    <article class="panel form-panel">
-      <div class="form-panel__header">
-        <div class="form-panel__icon">
-          <i data-lucide="badge-plus" aria-hidden="true"></i>
-        </div>
-        <div>
-          <h2>Создать проект</h2>
-          <p>После создания вы сможете вручную добавить пользователей, курьеров и контейнеры.</p>
+        <div class="projects-help">
+          <i data-lucide="info" aria-hidden="true"></i>
+          <span>Нужно больше проектов?</span>
+          <a href="/docs/projects">Узнать больше о рабочих пространствах</a>
         </div>
       </div>
 
-      <form class="form form--soft" method="post" action="/dashboard/projects/">
-        <label>
-          Название проекта
-          <input name="name" required placeholder="Production API">
-        </label>
-        <label>
-          Описание
-          <textarea name="description" rows="4" placeholder="Кратко опишите назначение проекта"></textarea>
-        </label>
-        <button class="button button--primary" type="submit">
-          <i data-lucide="circle-plus" aria-hidden="true"></i>
-          Создать проект
-        </button>
-      </form>
-    </article>
+      <article class="projects-create">
+        <div class="projects-create__header">
+          <div class="projects-create__icon">
+            <i data-lucide="badge-plus" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h2>Создать проект</h2>
+            <p>После создания вы сможете вручную добавить пользователей, курьеров и контейнеры.</p>
+          </div>
+        </div>
+
+        <form class="projects-create__form" method="post" action="/dashboard/projects/">
+          <label>
+            <span>Название проекта</span>
+            <input name="name" required maxlength="64" placeholder="Введите название проекта" data-char-source="project-name">
+            <small data-char-count="project-name">0 / 64</small>
+          </label>
+          <label>
+            <span>Описание проекта</span>
+            <textarea name="description" rows="4" maxlength="256" placeholder="Кратко опишите назначение проекта" data-char-source="project-description"></textarea>
+            <small data-char-count="project-description">0 / 256</small>
+          </label>
+
+          <div class="projects-create__features">
+            <span><i data-lucide="shield-check" aria-hidden="true"></i>Изоляция ресурсов и окружений</span>
+            <span><i data-lucide="users-round" aria-hidden="true"></i>Гибкое управление доступами</span>
+            <span><i data-lucide="badge-check" aria-hidden="true"></i>Интеграция с пайплайнами</span>
+          </div>
+
+          <button class="button button--primary" type="submit">
+            <i data-lucide="circle-plus" aria-hidden="true"></i>
+            Создать проект
+          </button>
+        </form>
+      </article>
+    </div>
   </section>
 {% endblock %}

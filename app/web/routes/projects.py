@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import re
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.concurrency import run_in_threadpool
@@ -909,7 +910,7 @@ def _sync_node_statuses(db: Session, project: Project, online_node_ids: set[int]
         db.commit()
 
 
-def _containers_payload(node: Node, containers: list[DockerContainerInfo]) -> list[dict[str, str]]:
+def _containers_payload(node: Node, containers: list[DockerContainerInfo]) -> list[dict]:
     return [
         {
             "id": container.id,
@@ -917,12 +918,41 @@ def _containers_payload(node: Node, containers: list[DockerContainerInfo]) -> li
             "image": container.image,
             "status": container.status,
             "state": container.state,
+            "ports": container.ports,
+            "web_urls": _container_web_urls(node.server_ip, container.ports),
             "node_id": str(node.id),
             "node_name": node.name,
             "server_ip": node.server_ip,
         }
         for container in containers
     ]
+
+
+def _container_web_urls(server_ip: str, ports: str) -> list[dict[str, str]]:
+    urls: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for segment in (ports or "").split(","):
+        match = re.search(r"(?:^|:)(\d+)->(\d+)/(tcp|udp)", segment.strip())
+        if not match:
+            continue
+        host_port, container_port, protocol = match.groups()
+        if protocol != "tcp":
+            continue
+        key = (host_port, container_port)
+        if key in seen:
+            continue
+        seen.add(key)
+        url = f"http://{server_ip}:{host_port}"
+        urls.append(
+            {
+                "url": url,
+                "label": f"{server_ip}:{host_port}",
+                "host_port": host_port,
+                "container_port": container_port,
+                "protocol": protocol,
+            }
+        )
+    return urls
 
 
 def _images_payload(node: Node, images: list[DockerImageInfo]) -> list[dict[str, str]]:

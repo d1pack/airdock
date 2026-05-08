@@ -478,3 +478,179 @@
     min-width: 0;
   }
 }
+
+/* Compact reference alignment */
+@media (min-width: 981px) {
+  .ad-pipelines-page {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding-top: 10px;
+  }
+
+  .ad-pipelines-page .ad-pipelines-hero {
+    min-height: 128px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 24px;
+    margin: 0 0 52px;
+  }
+
+  .ad-pipelines-page .ad-pipelines-hero__eyebrow {
+    display: none;
+  }
+
+  .ad-pipelines-page .ad-pipelines-hero h1 {
+    font-size: clamp(42px, 4vw, 56px);
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .ad-pipelines-page .ad-pipelines-hero__description {
+    max-width: 980px;
+    margin-top: 18px;
+    font-size: 17px;
+    line-height: 1.45;
+  }
+
+  .ad-pipelines-page .ad-pipelines-create {
+    min-width: 280px;
+    min-height: 74px;
+    border-radius: 20px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-list {
+    gap: 24px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-card {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 290px);
+    gap: 22px 28px;
+    padding: 44px 44px 22px;
+    border-radius: 24px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-card__main {
+    grid-template-columns: 156px minmax(0, 1fr);
+    gap: 36px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-card__logo {
+    width: 156px;
+    height: 156px;
+    border-radius: 24px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-card__logo svg {
+    width: 64px;
+    height: 64px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-card__title {
+    font-size: 38px;
+    line-height: 1.05;
+    letter-spacing: 0;
+  }
+
+  .ad-pipelines-page .ad-pipeline-card__menu {
+    position: absolute;
+    top: 62px;
+    right: 42px;
+    z-index: 4;
+    width: 38px;
+    height: 38px;
+    background: rgba(7, 14, 34, 0.3);
+    border: 1px solid rgba(143, 166, 255, 0.1);
+    backdrop-filter: blur(10px);
+  }
+
+  .ad-pipelines-page .ad-pipeline-card__projects {
+    margin-top: 28px;
+    gap: 12px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-chip {
+    min-height: 38px;
+    padding: 0 18px;
+    border-radius: 12px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-card__meta {
+    margin-top: 22px;
+    font-size: 15px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-card__side {
+    padding-top: 18px;
+    padding-right: 22px;
+    align-content: center;
+    justify-items: stretch;
+    gap: 16px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-card__side .ad-pipeline-status {
+    justify-self: start;
+  }
+
+  .ad-pipelines-page .ad-pipeline-card__started,
+  .ad-pipelines-page .ad-pipeline-card__run-form {
+    justify-self: end;
+  }
+
+  .ad-pipelines-page .ad-pipeline-status {
+    min-height: 42px;
+    padding: 0 18px !important;
+    border-radius: 14px !important;
+    font-size: 15px !important;
+  }
+
+  .ad-pipelines-page .ad-pipeline-run {
+    min-width: 212px;
+    min-height: 74px;
+    border-radius: 18px;
+    font-size: 18px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-flow {
+    margin-top: 20px;
+    padding: 28px;
+    border-radius: 20px;
+    gap: clamp(24px, 3.2vw, 70px);
+  }
+
+  .ad-pipelines-page .ad-pipeline-flow__node {
+    min-height: 88px;
+    grid-template-columns: 38px 52px minmax(0, 1fr);
+    padding: 16px 18px;
+    border-radius: 16px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-flow__node:not(:last-child)::after {
+    left: calc(100% + 14px);
+    width: clamp(24px, 2.8vw, 56px);
+  }
+}
+
+@media (min-width: 981px) and (max-height: 820px) {
+  .ad-pipelines-page {
+    padding-top: 0;
+  }
+
+  .ad-pipelines-page .ad-pipelines-hero {
+    min-height: 104px;
+    margin-bottom: 36px;
+  }
+
+  .ad-pipelines-page .ad-pipelines-hero h1 {
+    font-size: 48px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-card {
+    padding-top: 34px;
+  }
+
+  .ad-pipelines-page .ad-pipeline-card__logo {
+    width: 138px;
+    height: 138px;
+  }
+}

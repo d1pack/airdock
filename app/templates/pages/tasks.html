@@ -3,61 +3,63 @@
 {% block title %}Задачи - Airdock{% endblock %}
 
 {% block content %}
-  {% set task_filters = filters if filters is defined else {"status": "", "created_from": "", "created_to": ""} %}
+  {% set task_filters = filters if filters is defined else {"status": "", "project_id": "", "task_type": "", "created_from": "", "created_to": ""} %}
   {% set task_status_filters = status_filters if status_filters is defined else {} %}
-  <header class="page-header">
-    <div>
-      <p class="eyebrow">Очередь выполнения</p>
-      <h1>Задачи</h1>
-    </div>
-    <div class="task-page-actions">
-      <button class="button button--violet-glow button--compact" type="button" data-task-create-toggle aria-expanded="false" aria-controls="task-create-panel">
-        <i data-lucide="plus" aria-hidden="true"></i>
-        Добавить задачу
-      </button>
-      <div class="live-pill">{{ tasks|length }} задач</div>
-    </div>
-  </header>
+  {% set task_type_filters = type_filters if type_filters is defined else {} %}
 
-  {% if error == "missing_playbook" %}
-    <section class="alert">Playbook для задачи не найден или недоступен.</section>
-  {% endif %}
+  <section class="tasks-page">
+    <header class="tasks-page__header">
+      <div>
+        <h1>Задачи</h1>
+        <p>Очередь выполнения и мониторинг задач по инфраструктуре и сервисам.</p>
+      </div>
+      <div class="tasks-page__actions">
+        <button class="button button--violet-glow" type="button" data-task-create-toggle aria-expanded="false" aria-controls="task-create-panel">
+          <i data-lucide="plus" aria-hidden="true"></i>
+          Добавить задачу
+        </button>
+        <div class="tasks-page__count">{{ tasks|length }} задач</div>
+      </div>
+    </header>
 
-  <section class="tasks-dashboard">
-    <article class="panel task-create-panel is-collapsed" id="task-create-panel" data-task-create-panel hidden>
-      <div class="form-panel__header">
-        <div class="form-panel__icon">
+    {% if error == "missing_playbook" %}
+      <section class="alert">Playbook для задачи не найден или недоступен.</section>
+    {% endif %}
+
+    <article class="tasks-create-panel is-collapsed" id="task-create-panel" data-task-create-panel hidden>
+      <div class="tasks-create-panel__header">
+        <div class="tasks-create-panel__icon">
           <i data-lucide="list-plus" aria-hidden="true"></i>
         </div>
         <div>
           <h2>Добавить задачу</h2>
-          <p>Создайте задачу запуска playbook вручную или сразу поставьте её в очередь.</p>
+          <p>Создайте ручной запуск playbook или сразу поставьте его в очередь.</p>
         </div>
-        <button class="button button--danger-glow button--compact task-create-panel__close" type="button" data-task-create-close>
+        <button class="button button--secondary button--compact" type="button" data-task-create-close>
           <i data-lucide="x" aria-hidden="true"></i>
-          Выйти
+          Закрыть
         </button>
       </div>
       {% if playbooks %}
-        <form class="form form--soft task-create-form" method="post" action="/dashboard/tasks/">
+        <form class="tasks-create-form" method="post" action="/dashboard/tasks/">
           <label>
-            Название
+            <span>Название</span>
             <input name="title" placeholder="Запуск деплоя">
           </label>
           <label>
-            Playbook
+            <span>Playbook</span>
             <select name="playbook_id" required>
               {% for playbook in playbooks %}
                 <option value="{{ playbook.id }}">{{ playbook.project.name }} / {{ playbook.name }}</option>
               {% endfor %}
             </select>
           </label>
-          <label class="field-wide">
-            Время запуска по МСК
+          <label>
+            <span>Время запуска по МСК</span>
             <input type="datetime-local" name="scheduled_at_msk">
           </label>
-          <div class="task-create-actions">
-            <button class="button button--success-glow" type="submit" name="action" value="create">
+          <div class="tasks-create-form__actions">
+            <button class="button button--secondary" type="submit" name="action" value="create">
               <i data-lucide="save" aria-hidden="true"></i>
               Сохранить
             </button>
@@ -69,27 +71,39 @@
               <i data-lucide="play" aria-hidden="true"></i>
               Создать и запустить
             </button>
-            <button class="button button--danger-glow" type="button" data-task-create-close>
-              <i data-lucide="x" aria-hidden="true"></i>
-              Выйти
-            </button>
           </div>
         </form>
       {% else %}
-        <div class="docker-container-empty playbook-log-empty">
+        <div class="tasks-empty">
           <i data-lucide="workflow" aria-hidden="true"></i>
           <span>Сначала добавьте playbook в проект.</span>
         </div>
       {% endif %}
     </article>
 
-    <article class="panel task-filter-panel">
-      <div class="panel__header">
-        <h2>Фильтры</h2>
-      </div>
-      <form class="task-filter-form" method="get" action="/dashboard/tasks/">
+    <article class="tasks-filter-panel">
+      <h2>Фильтры</h2>
+      <form class="tasks-filter-form" method="get" action="/dashboard/tasks/">
         <label>
-          Статус
+          <span>Проект</span>
+          <select name="project_id">
+            <option value="" {% if not task_filters.project_id %}selected{% endif %}>Все проекты</option>
+            {% for project in projects %}
+              <option value="{{ project.id }}" {% if task_filters.project_id|string == project.id|string %}selected{% endif %}>{{ project.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Тип</span>
+          <select name="task_type">
+            <option value="" {% if not task_filters.task_type %}selected{% endif %}>Все типы</option>
+            {% for value, label in task_type_filters.items() %}
+              <option value="{{ value }}" {% if task_filters.task_type == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Статус</span>
           <select name="status">
             <option value="" {% if not task_filters.status %}selected{% endif %}>Все статусы</option>
             {% for value, label in task_status_filters.items() %}
@@ -98,19 +112,19 @@
           </select>
         </label>
         <label>
-          Создана с
+          <span>Создана с</span>
           <input type="date" name="created_from" value="{{ task_filters.created_from }}">
         </label>
         <label>
-          Создана по
+          <span>Создана по</span>
           <input type="date" name="created_to" value="{{ task_filters.created_to }}">
         </label>
-        <div class="task-filter-actions">
-          <button class="button button--primary button--compact" type="submit">
+        <div class="tasks-filter-form__actions">
+          <button class="button button--primary" type="submit">
             <i data-lucide="filter" aria-hidden="true"></i>
             Применить
           </button>
-          <a class="button button--secondary button--compact" href="/dashboard/tasks/">
+          <a class="button button--secondary" href="/dashboard/tasks/">
             <i data-lucide="rotate-ccw" aria-hidden="true"></i>
             Сбросить
           </a>
@@ -118,60 +132,79 @@
       </form>
     </article>
 
-    <article class="panel task-list-panel">
-      <div class="panel__header">
+    <article class="tasks-list-panel">
+      <div class="tasks-list-panel__header">
         <h2>Список задач</h2>
-        <div class="legend">
-          <span><i class="dot dot--green"></i>выполнено</span>
-          <span><i class="dot dot--orange"></i>ожидание</span>
-          <span><i class="dot dot--red"></i>ошибка</span>
+        <div class="tasks-legend">
+          <span><i class="dot dot--green"></i>Выполнена</span>
+          <span><i class="dot dot--orange"></i>Выполняется</span>
+          <span><i class="dot dot--red"></i>Ошибка</span>
         </div>
       </div>
-      <section class="task-list">
+
+      <div class="tasks-table">
+        <div class="tasks-table__head">
+          <span>Задача</span>
+          <span>Проект / путь</span>
+          <span>Тип</span>
+          <span>Создана</span>
+          <span>Длительность</span>
+          <span>Статус</span>
+          <span></span>
+        </div>
         {% for task in tasks %}
-          <article class="task-card task-card--{{ task.status }}">
-            <a class="task-card__link" href="/dashboard/tasks/{{ task.id }}">
-              <span class="task-card__icon">
-                {% if task.task_type == "metrics" %}
-                  <i data-lucide="activity" aria-hidden="true"></i>
-                {% elif task.task_type == "pipeline" %}
+          <article class="tasks-table-row tasks-table-row--{{ task.status_tone }}">
+            <a class="tasks-table-row__main" href="/dashboard/tasks/{{ task.id }}">
+              <span class="tasks-table-row__icon">
+                {% if task.task_type == "pipeline" %}
                   <i data-lucide="git-branch" aria-hidden="true"></i>
-                {% else %}
+                {% elif task.task_type == "playbook" %}
                   <i data-lucide="workflow" aria-hidden="true"></i>
+                {% else %}
+                  <i data-lucide="activity" aria-hidden="true"></i>
                 {% endif %}
               </span>
-              <span class="task-card__body">
+              <span>
                 <strong>{{ task.title }}</strong>
-                <span>
-                  {{ task.owner_label }} / {{ task.task_type }}
-                  {% if task.project %} / {{ task.project.name }}{% endif %}
-                  {% if task.pipeline %} / {{ task.pipeline.name }}{% endif %}
-                  {% if task.playbook %} / {{ task.playbook.name }}{% endif %}
-                </span>
-                <small>
-                  Создана: {{ task.created_at.strftime("%d.%m.%Y %H:%M") }}
-                  · Выполнение: {{ task.runtime_label }}
-                  {% if task.scheduled_at %}
-                    · <span class="task-countdown" data-task-countdown="{{ task.scheduled_at.isoformat() }}Z">МСК {{ task.scheduled_at_msk.strftime("%d.%m.%Y %H:%M") }}</span>
-                  {% endif %}
-                </small>
-              </span>
-              <span class="task-status task-status--{{ task.status_tone }}">
-                <i></i>{{ task.status_label }}
+                <small>#TASK-{{ "%04d"|format(task.id) }}</small>
               </span>
             </a>
-            {% if task.status in ["queued", "running", "scheduled", "cancel_requested"] and (can_manage_tasks or task.owner_id == current_user.id) %}
-              <form class="task-card__stop" method="post" action="/dashboard/tasks/{{ task.id }}/stop">
-                <button class="container-action container-action--delete" type="submit" title="Остановить задачу">
-                  <i data-lucide="square" aria-hidden="true"></i>
-                </button>
-              </form>
-            {% endif %}
+            <a class="tasks-table-row__path" href="/dashboard/tasks/{{ task.id }}">
+              <i data-lucide="folder" aria-hidden="true"></i>
+              <span>
+                {{ task.project.name if task.project else "Без проекта" }}
+                {% if task.pipeline %} / {{ task.pipeline.name }}{% endif %}
+                {% if task.playbook %} / {{ task.playbook.name }}{% endif %}
+              </span>
+            </a>
+            <span class="tasks-table-row__type">{{ task_type_filters.get(task.task_type, task.task_type) }}</span>
+            <span class="tasks-table-row__date">
+              <i data-lucide="clock-3" aria-hidden="true"></i>
+              {{ task.created_at.strftime("%d.%m.%Y %H:%M") }}
+            </span>
+            <span class="tasks-table-row__runtime">{{ task.runtime_label }}</span>
+            <span class="task-status task-status--{{ task.status_tone }}">
+              <i></i><span class="task-status__label">{{ task.status_label }}</span>
+            </span>
+            <span class="tasks-table-row__actions">
+              {% if task.status in ["queued", "running", "scheduled", "cancel_requested"] and (can_manage_tasks or task.owner_id == current_user.id) %}
+                <form method="post" action="/dashboard/tasks/{{ task.id }}/stop">
+                  <button class="container-action container-action--delete" type="submit" title="Остановить задачу">
+                    <i data-lucide="square" aria-hidden="true"></i>
+                  </button>
+                </form>
+              {% else %}
+                <i data-lucide="more-vertical" aria-hidden="true"></i>
+              {% endif %}
+            </span>
           </article>
         {% else %}
-          <section class="panel empty-panel">Задач пока нет.</section>
+          <section class="tasks-empty">
+            <i data-lucide="list-x" aria-hidden="true"></i>
+            <span>Задач по выбранным фильтрам нет.</span>
+          </section>
         {% endfor %}
-      </section>
+      </div>
     </article>
   </section>
 {% endblock %}

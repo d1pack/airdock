@@ -19,18 +19,28 @@ router = APIRouter()
 async def index(
     request: Request,
     status: str = Query(""),
+    project_id: str = Query(""),
+    task_type: str = Query(""),
     created_from: str = Query(""),
     created_to: str = Query(""),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     status = status if status in _TASK_STATUS_FILTERS else ""
+    task_type = task_type if task_type in _TASK_TYPE_FILTERS else ""
+    available_projects = _available_projects(db, current_user)
+    available_project_ids = {project.id for project in available_projects}
+    selected_project_id = _parse_project_filter(project_id, available_project_ids)
     query = (
         select(Task)
         .options(selectinload(Task.project), selectinload(Task.playbook), selectinload(Task.pipeline), selectinload(Task.owner))
     )
     if not can_manage(current_user):
         query = query.where((Task.owner_id == current_user.id) | (Task.owner_id.is_(None)))
+    if selected_project_id:
+        query = query.where(Task.project_id == selected_project_id)
+    if task_type:
+        query = query.where(Task.task_type == task_type)
     if status:
         query = query.where(Task.status == status)
     created_from_dt = _parse_msk_date_start(created_from)
@@ -50,13 +60,17 @@ async def index(
             "current_user": current_user,
             "tasks": tasks,
             "playbooks": playbooks,
+            "projects": available_projects,
             "can_manage_tasks": can_manage(current_user),
             "filters": {
                 "status": status,
+                "project_id": selected_project_id or "",
+                "task_type": task_type,
                 "created_from": created_from,
                 "created_to": created_to,
             },
             "status_filters": _TASK_STATUS_FILTERS,
+            "type_filters": _TASK_TYPE_FILTERS,
             "error": request.query_params.get("error"),
         },
     )
@@ -245,10 +259,27 @@ def _parse_msk_date_end(value: str) -> datetime | None:
     return start + timedelta(days=1) if start else None
 
 
+def _parse_project_filter(value: str, allowed_project_ids: set[int]) -> int | None:
+    try:
+        project_id = int((value or "").strip())
+    except ValueError:
+        return None
+    return project_id if project_id in allowed_project_ids else None
+
+
 def _available_playbooks(db: Session, user: User) -> list[AnsiblePlaybook]:
     query = select(AnsiblePlaybook).options(selectinload(AnsiblePlaybook.project)).order_by(AnsiblePlaybook.name)
     if not can_manage(user):
         query = query.join(Project).outerjoin(ProjectUser, ProjectUser.project_id == Project.id).where(
+            (Project.owner_id == user.id) | (ProjectUser.user_id == user.id)
+        )
+    return db.scalars(query).unique().all()
+
+
+def _available_projects(db: Session, user: User) -> list[Project]:
+    query = select(Project).order_by(Project.name)
+    if not can_manage(user):
+        query = query.outerjoin(ProjectUser, ProjectUser.project_id == Project.id).where(
             (Project.owner_id == user.id) | (ProjectUser.user_id == user.id)
         )
     return db.scalars(query).unique().all()
@@ -272,4 +303,9 @@ _TASK_STATUS_FILTERS = {
     "cancelled": "Остановлена",
     "success": "Выполнена",
     "failed": "Ошибка",
+}
+
+_TASK_TYPE_FILTERS = {
+    "pipeline": "Пайплайн",
+    "playbook": "Плейбук",
 }
